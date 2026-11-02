@@ -161,7 +161,7 @@ describe('eval: a dry run on the fake network', () => {
     assert.equal(sheet.match(/<article class="beat"/g)?.length, 2)
     assert.match(sheet, /<p class="text">One sentence\.<\/p>/)
     for (const asset of assets) {
-      assert.match(asset.thumbnailUrl, /^https:\/\/images\.pexels\.com\//)
+      assert.match(asset.thumbnailUrl, /^https:\/\/upload\.wikimedia\.org\//)
       assert.ok(sheet.includes(`<img src="${escapeHtml(asset.thumbnailUrl)}"`), asset.id)
     }
     assert.doesNotMatch(sheet, /<script[^>]*\ssrc=/)
