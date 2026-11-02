@@ -154,12 +154,6 @@ export function installFakeNetwork(): FakeNetwork {
     }
   }
 
-  const quotaHeaders = (): Record<string, string> => ({
-    'X-Ratelimit-Limit': String(pexels.quota.limit),
-    'X-Ratelimit-Remaining': String(pexels.quota.remaining),
-    'X-Ratelimit-Reset': String(pexels.quota.resetAt)
-  })
-
   const problem = (message: string): Response => {
     problems.push(message)
     return errorResponse(400, message)
@@ -203,7 +197,21 @@ export function installFakeNetwork(): FakeNetwork {
     })
   }
 
-  const commonsFile = (item: PexelsPhoto | PexelsVideo, type: 'photo' | 'video') => {
+  const commonsFile = (
+    item: PexelsPhoto | PexelsVideo,
+    type: 'photo' | 'video'
+  ): {
+    pageid: number
+    title: string
+    imageinfo: Array<{
+      url: string
+      thumburl: string
+      width: number
+      height: number
+      mime: string
+      extmetadata: Record<string, { value: string }>
+    }>
+  } => {
     const title = `File:${type}-${item.id}.${type === 'photo' ? 'jpg' : 'webm'}`
     const ext = type === 'photo' ? 'jpg' : 'webm'
     const mime = type === 'photo' ? 'image/jpeg' : 'video/webm'
