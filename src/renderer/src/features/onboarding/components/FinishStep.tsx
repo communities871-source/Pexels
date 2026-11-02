@@ -13,7 +13,6 @@ type FinishStepProps = Pick<
   | 'modelId'
   | 'downloadFolder'
   | 'hasLlmKey'
-  | 'hasPexelsKey'
   | 'finishing'
   | 'finishError'
   | 'finish'
@@ -24,12 +23,11 @@ export function FinishStep({
   modelId,
   downloadFolder,
   hasLlmKey,
-  hasPexelsKey,
   finishing,
   finishError,
   finish
 }: FinishStepProps): React.JSX.Element {
-  const ready = hasLlmKey && hasPexelsKey
+  const ready = hasLlmKey
   const providerLabel =
     PROVIDER_OPTIONS.find((option) => option.id === llmProvider)?.label ?? llmProvider
   return (
@@ -49,7 +47,7 @@ export function FinishStep({
         description={
           ready
             ? 'Here is what StockFinder will use. You can change any of it later in Settings.'
-            : 'You can start now, but a run needs both keys. Add the missing one in Settings.'
+            : 'Add your AI provider key in Settings before starting a run.'
         }
       />
 
@@ -63,10 +61,10 @@ export function FinishStep({
         />
         <SummaryCard
           icon={<ImagesIcon />}
-          title="Pexels"
+          title="Wikimedia Commons"
           value="Photos and clips"
-          status={hasPexelsKey ? 'Ready' : 'No key'}
-          ok={hasPexelsKey}
+          status="Ready"
+          ok
         />
         <SummaryCard
           icon={<FolderIcon />}
