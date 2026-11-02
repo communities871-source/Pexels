@@ -5,8 +5,8 @@ import { join } from 'node:path'
 /**
  * Records answers of the Pexels API to a folder and replays them on later runs, so a
  * re-run spends no Pexels quota and two prompt versions see identical search results.
- * Only successful GET requests to api.pexels.com are recorded: searches and the by-id
- * lookups. The request's Authorization header is never written.
+ * Only successful GET requests to Wikimedia Commons are recorded: searches and file
+ * lookups. No authorization credentials are written.
  */
 
 export interface PexelsRateLimit {
