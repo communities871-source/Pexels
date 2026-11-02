@@ -56,7 +56,7 @@ describe('runner: the app picks the file when the model names none', () => {
     network.pexels.photos('quiet desk', [wide]).photos('tall lighthouse', [tall])
     network.llm
       .tools([submitBeats(['One sentence.', 'Another sentence.'])])
-      .tools([searchPhotos('beat_1', 'quiet desk'), searchPhotos('beat_2', 'tall lighthouse')])
+      .tools([searchPhotos('beat_1', 'quiet desk'), searchPhotos('beat_2', 'tall lighthouse', 'portrait')])
       .tools([
         select([
           { beatId: 'beat_1', assetType: 'photo', pexelsId: 201 },
