@@ -1152,7 +1152,7 @@ export class AgentRunner extends EventEmitter {
             id: a.id,
             type: a.type,
             pexelsId: a.pexelsId,
-            url: a.url,
+            url: a.sourceUrl || a.photographerUrl || a.url,
             photographer: a.photographer,
             photographerUrl: a.photographerUrl,
             sourceUrl: a.sourceUrl,
