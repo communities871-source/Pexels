@@ -21,6 +21,7 @@ type CommonsPage = {
     width?: number
     height?: number
     mime?: string
+    extmetadata?: Record<string, { value?: string; source?: string; hidden?: string }>
   }>
 }
 type CommonsResponse = {
@@ -47,7 +48,7 @@ export class PexelsClient {
     url.searchParams.set('gsrlimit', String(Math.min(50, perPage)))
     url.searchParams.set('gsroffset', String((Math.max(1, page) - 1) * Math.min(50, perPage)))
     url.searchParams.set('prop', 'imageinfo')
-    url.searchParams.set('iiprop', 'url|size|mime')
+    url.searchParams.set('iiprop', 'url|size|mime|extmetadata')
     url.searchParams.set('iiurlwidth', '640')
     url.searchParams.set('origin', '*')
     const response = await fetchWithRetry(url.toString(), {
@@ -68,7 +69,7 @@ export class PexelsClient {
     return Object.values(data.query?.pages || {}).filter((page) => {
       const info = page.imageinfo?.[0]
       if (!info?.url || !info.width || !info.height) return false
-      return type === 'video' ? Boolean(info.mime?.startsWith('video/')) : Boolean(info.mime?.startsWith('image/'))
+      return type === 'video' ? Boolean(info.mime && /^(video\/|application\/(ogg|x-ogg))/.test(info.mime)) : Boolean(info.mime?.startsWith('image/'))
     })
   }
 
@@ -81,10 +82,13 @@ export class PexelsClient {
       width: info.width || 0,
       height: info.height || 0,
       url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
-      photographer: 'Wikimedia Commons contributor',
+      photographer: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor',
       photographer_url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
       src: { original, large2x: preview, large: preview, medium: preview, small: preview, portrait: preview, landscape: preview, tiny: preview },
-      alt: page.title.replace(/^File:/, '')
+      alt: page.title.replace(/^File:/, ''),
+      commonsLicense: page.imageinfo?.[0]?.extmetadata?.LicenseShortName?.value?.replace(/<[^>]*>/g, '').trim() || 'License not identified',
+      commonsLicenseUrl: page.imageinfo?.[0]?.extmetadata?.LicenseUrl?.value || '',
+      commonsDescription: page.imageinfo?.[0]?.extmetadata?.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || ''
     }
   }
 
@@ -99,7 +103,7 @@ export class PexelsClient {
       url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
       image: preview,
       duration: 0,
-      user: { name: 'Wikimedia Commons contributor', url: 'https://commons.wikimedia.org/' },
+      user: { name: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor', url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}` },
       video_files: [{ link: original, file_type: info.mime || 'video/webm', width: info.width || 0, height: info.height || 0, quality: 'original' }]
     }
   }
