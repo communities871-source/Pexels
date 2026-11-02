@@ -2,7 +2,7 @@ import type { PexelsPhoto, PexelsVideo } from '../../src/main/services/pexels/pe
 
 /**
  * Replaces globalThis.fetch with a router, so a test sees every request the app makes
- * and nothing reaches the real internet. LLM replies are scripted per test; Pexels
+ * and nothing reaches the real internet. LLM replies are scripted per test; Commons
  * searches answer from fixtures; media URLs answer with a small body.
  */
 
@@ -63,7 +63,7 @@ export interface FakePexels {
   photos(query: string, results: PexelsPhoto[]): FakePexels
   /** Results for a video search with this exact query. Other queries find nothing. */
   videos(query: string, results: PexelsVideo[]): FakePexels
-  /** Sent as X-Ratelimit-* headers on every Pexels API answer. `resetAt` is in epoch seconds. */
+  /** Sent as X-Ratelimit-* headers on every Commons API answer. `resetAt` is in epoch seconds. */
   quota: { limit: number; remaining: number; resetAt: number }
   /** The next search answers with this status instead of results. */
   failNextSearch(status: number): FakePexels
@@ -80,7 +80,7 @@ export interface FakeNetwork {
   problems: string[]
   /** Chat completion requests only, in order. */
   llmRequests(): LlmRequestBody[]
-  /** Requests to api.pexels.com only, in order. */
+  /** Requests to Wikimedia Commons API only, in order. */
   pexelsRequests(): RecordedRequest[]
   /** Requests for media files only, in order. */
   mediaRequests(): RecordedRequest[]
@@ -245,7 +245,7 @@ export function installFakeNetwork(): FakeNetwork {
     if (url.searchParams.has('generator')) {
       const rawQuery = url.searchParams.get('gsrsearch') || ''
       const isVideo = /filetype:video$/i.test(rawQuery)
-      const query = rawQuery.replace(/\\s+filetype:(?:bitmap|video)$/i, '').trim()
+      const query = rawQuery.replace(/\s+filetype:(?:bitmap|video)$/i, '').trim()
       const found = isVideo ? (videoResults.get(query) || []) : (photoResults.get(query) || [])
       const pages = found.map((item) => commonsFile(item, isVideo ? 'video' : 'photo'))
       return jsonResponse({ query: { pages } })
