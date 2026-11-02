@@ -7,13 +7,6 @@ import type { PexelsPhoto, PexelsVideo } from '../../src/main/services/pexels/pe
 const COMMONS_FILE = 'https://upload.wikimedia.org/wikipedia/commons/a/a1'
 const COMMONS_THUMB = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1'
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-}
-
 /** A photo shaped like a Wikimedia Commons search result. */
 export function photo(id: number, alt: string, width = 6000, height = 4000): PexelsPhoto {
   const file = `photo-${id}.jpg`
@@ -55,7 +48,7 @@ export function video(
   const file = `video-${id}.webm`
   const original = `${COMMONS_FILE}/${file}`
   const preview = `${COMMONS_THUMB}/${file}/640px-${file}.jpg`
-  const [quality, width, height] = files[0] || ['uhd', 3840, 2160]
+  const [, width, height] = files[0] || ['uhd', 3840, 2160]
   return {
     id,
     width,
