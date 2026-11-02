@@ -157,6 +157,9 @@ export interface AssetRecord {
   duration?: number
   photographer: string
   photographerUrl?: string
+  license?: string
+  licenseUrl?: string
+  description?: string
   query: string
   filePath?: string
   status: 'pending' | 'downloading' | 'completed' | 'failed'
@@ -1130,6 +1133,9 @@ export class AgentRunner extends EventEmitter {
       url: string
       photographer: string
       photographerUrl?: string
+      license?: string
+      licenseUrl?: string
+      description?: string
     }> = []
 
     for (const b of this.beats) {
@@ -1146,7 +1152,10 @@ export class AgentRunner extends EventEmitter {
             pexelsId: a.pexelsId,
             url: a.url,
             photographer: a.photographer,
-            photographerUrl: a.photographerUrl
+            photographerUrl: a.photographerUrl,
+            license: a.license,
+            licenseUrl: a.licenseUrl,
+            description: a.description
           })
         }
       }
@@ -1817,6 +1826,9 @@ export class AgentRunner extends EventEmitter {
       duration: candidate.duration,
       photographer: candidate.photographer,
       photographerUrl: candidate.photographerUrl,
+      license: candidate.license,
+      licenseUrl: candidate.licenseUrl,
+      description: candidate.description,
       query: candidate.query,
       status: 'pending'
     }
