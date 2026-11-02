@@ -23,7 +23,10 @@ export const PexelsPhotoSchema = z
         tiny: z.string().nullable().optional()
       })
       .passthrough(),
-    alt: z.string().nullable().optional()
+    alt: z.string().nullable().optional(),
+    commonsLicense: z.string().optional(),
+    commonsLicenseUrl: z.string().optional(),
+    commonsDescription: z.string().optional()
   })
   .passthrough()
 
