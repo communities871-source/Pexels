@@ -34,9 +34,7 @@ interface AttributionAssetInput {
 }
 
 export function buildCommonsAssetUrl(url: string): string {
-  return url.startsWith('https://commons.wikimedia.org/')
-    ? url
-    : 'https://commons.wikimedia.org/'
+  return url.startsWith('https://commons.wikimedia.org/wiki/File:') ? url : 'https://commons.wikimedia.org/'
 }
 
 export function buildManifestAttribution(
@@ -46,7 +44,7 @@ export function buildManifestAttribution(
   const attributionAssets: CommonsAssetAttribution[] = []
 
   for (const asset of assets) {
-    if (!asset.pexelsId || seenIds.has(asset.id)) continue
+    if (!Number.isFinite(asset.pexelsId) || asset.pexelsId <= 0 || seenIds.has(asset.id)) continue
     seenIds.add(asset.id)
     const creator = asset.photographer || 'Wikimedia Commons contributor'
     const license = asset.license || 'License not identified; verify the file page before reuse'
