@@ -20,14 +20,10 @@ export interface OnboardingController {
   modelId: string
   setModelId: (value: string) => void
   llmTest: ConnectionTest
-  pexelsKey: string
-  setPexelsKey: (value: string) => void
-  pexelsTest: ConnectionTest
   downloadFolder: string
   chooseFolder: () => Promise<void>
   /** A key for the chosen provider was typed here or is already stored. */
   hasLlmKey: boolean
-  hasPexelsKey: boolean
   finishing: boolean
   finishError: string | null
   finish: () => Promise<void>
@@ -41,7 +37,6 @@ export function useOnboarding(): OnboardingController {
   const [llmProvider, setLlmProvider] = useState<LlmProvider>('openai')
   const [keys, setKeys] = useState<ProviderKeys>({ openai: '', gemini: '', openrouter: '' })
   const [modelId, setModelId] = useState(DEFAULT_MODEL_IDS.openai)
-  const [pexelsKey, setPexelsKey] = useState('')
   const [downloadFolder, setDownloadFolder] = useState(settings?.downloadFolder || '')
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState<string | null>(null)
@@ -49,7 +44,6 @@ export function useOnboarding(): OnboardingController {
   const activeKey = keys[llmProvider]
   // After "Reset onboarding" the keys are still stored, so a blank field is not a missing key.
   const hasLlmKey = Boolean(activeKey.trim()) || Boolean(settings?.[`${llmProvider}Key`])
-  const hasPexelsKey = Boolean(pexelsKey.trim()) || Boolean(settings?.pexelsKey)
 
   const checkLlm = useCallback(async (): Promise<TestResult> => {
     const result = await api.settings.testProvider({
@@ -60,13 +54,7 @@ export function useOnboarding(): OnboardingController {
     return result as unknown as TestResult
   }, [llmProvider, activeKey, modelId])
 
-  const checkPexels = useCallback(async (): Promise<TestResult> => {
-    const result = await api.settings.testPexelsKey(pexelsKey || CURRENT_KEY_ON_DISK)
-    return result as unknown as TestResult
-  }, [pexelsKey])
-
   const llmTest = useConnectionTest(checkLlm, 'Connection test failed.')
-  const pexelsTest = useConnectionTest(checkPexels, 'Pexels test failed.')
   const resetLlmTest = llmTest.reset
 
   const selectProvider = useCallback(
@@ -93,14 +81,14 @@ export function useOnboarding(): OnboardingController {
     setFinishError(null)
     try {
       await updateSettings(
-        buildSettingsUpdates({ llmProvider, modelId, downloadFolder, keys, pexelsKey })
+        buildSettingsUpdates({ llmProvider, modelId, downloadFolder, keys })
       )
     } catch (err) {
       // For example the OS keychain is unavailable. Without this the button silently does nothing.
       setFinishError(errorMessage(err, 'Unknown error.'))
       setFinishing(false)
     }
-  }, [updateSettings, llmProvider, modelId, downloadFolder, keys, pexelsKey])
+  }, [updateSettings, llmProvider, modelId, downloadFolder, keys])
 
   return {
     step,
@@ -112,13 +100,9 @@ export function useOnboarding(): OnboardingController {
     modelId,
     setModelId,
     llmTest,
-    pexelsKey,
-    setPexelsKey,
-    pexelsTest,
     downloadFolder,
     chooseFolder,
     hasLlmKey,
-    hasPexelsKey,
     finishing,
     finishError,
     finish
