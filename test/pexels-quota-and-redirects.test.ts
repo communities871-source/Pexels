@@ -25,8 +25,8 @@ describe('Download redirect validation', () => {
     const response = await fetchValidatedDownload('https://upload.wikimedia.org/start.jpg')
     assert.equal(response.status, 200)
     assert.deepEqual(requested, [
-      'https://images.pexels.com/start.jpg',
-      'https://videos.pexels.com/final.mp4'
+      'https://upload.wikimedia.org/start.jpg',
+      'https://upload.wikimedia.org/final.mp4'
     ])
   })
 
@@ -49,7 +49,7 @@ describe('Download redirect validation', () => {
       redirectTo('https://upload.wikimedia.org/loop.jpg')) as typeof globalThis.fetch
 
     await assert.rejects(
-      () => fetchValidatedDownload('https://images.pexels.com/loop.jpg'),
+      () => fetchValidatedDownload('https://upload.wikimedia.org/loop.jpg'),
       /redirected more than/
     )
   })
