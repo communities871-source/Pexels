@@ -31,6 +31,14 @@ export function photoVariantDimensions(
   sourceHeight: number,
   url: string
 ): Dimensions {
+  const commonsThumb = url.match(/\/thumb\/.*\/(\d+)px-[^/]+$/)
+  if (commonsThumb) {
+    const thumbWidth = Math.min(sourceWidth, Number(commonsThumb[1]))
+    return {
+      width: thumbWidth,
+      height: Math.round((sourceHeight * thumbWidth) / sourceWidth)
+    }
+  }
   const query = new URL(url).searchParams
   const dpr = Number(query.get('dpr')) || 1
   const boxWidth = Number(query.get('w')) * dpr || undefined
