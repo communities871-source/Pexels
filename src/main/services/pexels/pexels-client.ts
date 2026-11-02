@@ -94,7 +94,7 @@ export class PexelsClient {
       photographer: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor',
       photographer_url: this.filePageUrl(page.title),
       src: { original, large2x: preview, large: preview, medium: preview, small: preview, portrait: preview, landscape: preview, tiny: preview },
-      alt: page.title.replace(/^File:/, ''),
+      alt: page.imageinfo?.[0]?.extmetadata?.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || page.title.replace(/^File:/, ''),
       commonsLicense: page.imageinfo?.[0]?.extmetadata?.LicenseShortName?.value?.replace(/<[^>]*>/g, '').trim() || 'License not identified',
       commonsLicenseUrl: page.imageinfo?.[0]?.extmetadata?.LicenseUrl?.value || '',
       commonsDescription: page.imageinfo?.[0]?.extmetadata?.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || ''
