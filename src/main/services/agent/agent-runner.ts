@@ -2344,8 +2344,7 @@ export class AgentRunner extends EventEmitter {
 
   /** docs/04: on an exhausted quota, stop new Pexels calls for this job and say why. */
   private pauseForPexelsQuota(): void {
-    const quota = PexelsClient.getQuotaSnapshot()
-    const resetNote = quota ? ` It resets ${new Date(quota.resetAt * 1000).toLocaleString()}.` : ''
+    const resetNote = ''
     this.setStatus('paused', 'pexels_quota')
     this.log(
       'error',
