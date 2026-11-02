@@ -66,7 +66,7 @@ export interface FakePexels {
   /** Sent as X-Ratelimit-* headers on every Commons API answer. `resetAt` is in epoch seconds. */
   quota: { limit: number; remaining: number; resetAt: number }
   /** The next search answers with this status instead of results. */
-  failNextSearch(status: number): FakePexels
+  failNextSearch(status: number, times?: number): FakePexels
   /** The next media file request answers with this status instead of the file. */
   failNextMedia(status: number): FakePexels
 }
@@ -111,6 +111,7 @@ export function installFakeNetwork(): FakeNetwork {
   const photoResults = new Map<string, PexelsPhoto[]>()
   const videoResults = new Map<string, PexelsVideo[]>()
   let failNextSearchStatus: number | null = null
+  let failNextSearchCount = 0
   let failNextMediaStatus: number | null = null
   let callCounter = 0
 
@@ -144,8 +145,9 @@ export function installFakeNetwork(): FakeNetwork {
       return pexels
     },
     quota: { limit: 20000, remaining: 19000, resetAt: Math.floor(Date.now() / 1000) + 86400 },
-    failNextSearch(status) {
+    failNextSearch(status, times = 1) {
       failNextSearchStatus = status
+      failNextSearchCount = Math.max(1, Math.floor(times))
       return pexels
     },
     failNextMedia(status) {
@@ -244,10 +246,15 @@ export function installFakeNetwork(): FakeNetwork {
   }
 
   const answerCommons = (url: URL): Response => {
-    if (failNextSearchStatus !== null && url.searchParams.has('generator')) {
+    if (failNextSearchStatus !== null && failNextSearchCount > 0 && url.searchParams.has('generator')) {
       const status = failNextSearchStatus
-      failNextSearchStatus = null
-      return jsonResponse({ error: { info: 'Simulated Commons API failure' } }, status)
+      failNextSearchCount--
+      if (failNextSearchCount === 0) failNextSearchStatus = null
+      return jsonResponse(
+        { error: { info: 'Simulated Commons API failure' } },
+        status,
+        status === 429 ? { 'Retry-After': '0.001' } : {}
+      )
     }
 
     if (url.searchParams.has('generator')) {
