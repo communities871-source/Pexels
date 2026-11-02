@@ -36,7 +36,7 @@ export interface EvalNetworkOptions {
   noDownload?: boolean
 }
 
-const MEDIA_HOSTS = new Set(['upload.wikimedia.org'])
+const MEDIA_HOSTS = new Set(['upload.wikimedia.org', 'videos.pexels.com'])
 const PLACEHOLDER_MEDIA = new TextEncoder().encode(
   'Placeholder written by the evaluation runner (--no-download). This is not a media file.\n'
 )
