@@ -146,7 +146,7 @@ describe('runner: the app picks the file when the model names none', () => {
     assert.deepEqual(network.problems, [])
     const [refused] = toolResults(run, 'select_assets_for_download')
     assert.deepEqual(refused.selections, [
-      { pexelsId: 101, status: 'rejected', reason: 'No downloadable file found for asset 101.' }
+      { pexelsId: 101, status: 'rejected', reason: 'Asset 101 was not found in Wikimedia Commons search results of this job.' }
     ])
     assert.equal(run.manifest.beats[0].assets.length, 1)
     assert.equal(run.manifest.beats[0].assets[0].pexelsId, 102)
