@@ -23,13 +23,13 @@ describe('runner: what the model gets back from a search', () => {
     platform: StartJobInput['platform'] = 'YouTube',
     videoArgs: Record<string, unknown> = {}
   ): void {
-    const videoShape = videoArgs.orientation === 'square'
-      ? [3000, 3000]
-      : platform === 'YouTube' ? [3840, 2160] : [2160, 3840]
-    const photoShape = platform === 'YouTube' ? [6000, 4000] : [4000, 6000]
+    const videoWidth = videoArgs.orientation === 'square' ? 3000 : platform === 'YouTube' ? 3840 : 2160
+    const videoHeight = videoArgs.orientation === 'square' ? 3000 : platform === 'YouTube' ? 2160 : 3840
+    const photoWidth = platform === 'YouTube' ? 6000 : 4000
+    const photoHeight = platform === 'YouTube' ? 4000 : 6000
     network.pexels
-      .videos('city street', [video(101, 'city-street', [['uhd', videoShape[0], videoShape[1]]])])
-      .photos('quiet desk', [photo(201, 'A quiet desk', photoShape[0], photoShape[1])])
+      .videos('city street', [video(101, 'city-street', [['uhd', videoWidth, videoHeight]] )])
+      .photos('quiet desk', [photo(201, 'A quiet desk', photoWidth, photoHeight)])
     network.llm
       .tools([submitBeats([ONE_BEAT_SCRIPT])])
       .tools([
@@ -49,7 +49,7 @@ describe('runner: what the model gets back from a search', () => {
     assert.ok(request, 'the model receives the search results')
     const result = request.messages
       .filter((message) => message.role === 'tool' && message.name === toolName)
-      .map((message) => JSON.parse(message.content || '{}') as { results?: Array<{ shape?: string }> })[0]
+      .map((message) => JSON.parse(typeof message.content === 'string' ? message.content : '{}') as { results?: Array<{ shape?: string }> })[0]
     return result?.results?.[0]?.shape ?? null
   }
 
