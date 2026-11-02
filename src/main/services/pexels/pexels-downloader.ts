@@ -8,7 +8,7 @@ import { findInFlightDownload, isRetryableDownloadStatus } from './download-task
 import { ApiError, classifyFetchError } from '../http/api-errors.ts'
 
 // ponytail: fixed limits; make them settings if anyone actually hits them.
-/** Far above any Pexels asset — stops a runaway or mislabelled response filling the disk. */
+/** Far above any Commons asset — stops a runaway or mislabelled response filling the disk. */
 const MAX_DOWNLOAD_BYTES = 4 * 1024 ** 3
 /** Free space to leave untouched after a download completes. */
 const DISK_SPACE_MARGIN_BYTES = 200 * 1024 ** 2
@@ -259,6 +259,7 @@ export class PexelsDownloader {
       } else {
         if (contentType.includes('quicktime')) ext = '.mov'
         else if (contentType.includes('webm')) ext = '.webm'
+        else if (contentType.includes('ogg')) ext = '.ogv'
       }
 
       // Ensure target folder exists
