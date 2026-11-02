@@ -70,8 +70,8 @@ export function videoCandidate(video: PexelsVideo, query: string): PexelsCandida
   }
 }
 
-/** The host Pexels serves its photos and video previews from. */
-const PEXELS_IMAGE_HOST = 'images.pexels.com'
+/** Wikimedia Commons serves file previews from upload.wikimedia.org. */
+const COMMONS_IMAGE_HOST = 'upload.wikimedia.org'
 
 /**
  * Sizes a video's preview image like a photo's "tiny" size: 280 by 200, cropped. This is the
@@ -80,13 +80,13 @@ const PEXELS_IMAGE_HOST = 'images.pexels.com'
  */
 export const VIDEO_THUMBNAIL_QUERY = 'auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
 
-/** An https URL on the Pexels image host, without credentials or a port. */
-function parsePexelsImageUrl(url: string | undefined): URL | undefined {
+/** An https URL on the Wikimedia Commons image host, without credentials or a port. */
+function parseCommonsImageUrl(url: string | undefined): URL | undefined {
   if (!url) return undefined
   try {
     const parsed = new URL(url)
     const plain = !parsed.username && !parsed.password && !parsed.port
-    return parsed.protocol === 'https:' && parsed.hostname === PEXELS_IMAGE_HOST && plain
+    return parsed.protocol === 'https:' && parsed.hostname === COMMONS_IMAGE_HOST && plain
       ? parsed
       : undefined
   } catch {
@@ -96,17 +96,16 @@ function parsePexelsImageUrl(url: string | undefined): URL | undefined {
 
 /**
  * A small image to show a model in place of the clip: a photo's `tiny` size, or a video's preview
- * image sized to match. Only a URL on images.pexels.com qualifies; a candidate with none (a record
+ * image sized to match. Only a URL on upload.wikimedia.org qualifies; a candidate with none (a record
  * from an older build may lack the `tiny` size) has no thumbnail and is judged by its description.
  */
 export function thumbnailUrlOf(candidate: PexelsCandidate): string | undefined {
   if (candidate.type === 'photo') {
     const tiny = candidate.variants.find((variant) => variant.label === 'tiny')
-    return parsePexelsImageUrl(tiny?.url)?.href
+    return parseCommonsImageUrl(tiny?.url)?.href
   }
-  const preview = parsePexelsImageUrl(candidate.imageUrl)
+  const preview = parseCommonsImageUrl(candidate.imageUrl)
   if (!preview) return undefined
-  preview.search = VIDEO_THUMBNAIL_QUERY
   preview.hash = ''
   return preview.href
 }
