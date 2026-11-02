@@ -58,7 +58,7 @@ export class PexelsClient {
       maxRetries: 3,
       init: {
         signal,
-        headers: { 'User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' }
+        headers: { 'User-Agent': 'StockFinderAI/1.0 (https://github.com/communities871-source/Pexels; media search)' }
       },
       isAborted: () => Boolean(signal?.aborted)
     })
