@@ -19,7 +19,7 @@ describe('thumbnailUrlOf', () => {
   describe('for a photo', () => {
     it('is the "tiny" size Pexels gives (280 by 200)', () => {
       assert.equal(
-        thumbnailUrlOf(photoCand(8, 'Sea foam')),
+        thumbnailUrlOf(withVariants(photoCand(8, 'Sea foam'), [{ label: 'tiny', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/example.jpg/280px-example.jpg' }])),
         'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/example.jpg/280px-example.jpg'
       )
     })
@@ -52,7 +52,7 @@ describe('thumbnailUrlOf', () => {
   describe('for a video', () => {
     it('is its preview image sized to 280 by 200', () => {
       assert.equal(
-        thumbnailUrlOf(videoCand(7, 'waves-on-a-beach')),
+        thumbnailUrlOf({ ...videoCand(7, 'waves-on-a-beach'), imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/280px--example.ogv.jpg' }),
         'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/280px--example.ogv.jpg'
       )
       assert.equal(VIDEO_THUMBNAIL_QUERY, 'auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280')
@@ -66,7 +66,7 @@ describe('thumbnailUrlOf', () => {
       }
       assert.equal(
         thumbnailUrlOf(candidate),
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/1200px--example.ogv.jpg'
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/1200px--example.ogv.jpg?width=1200'
       )
     })
 
