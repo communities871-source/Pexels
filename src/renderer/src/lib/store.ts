@@ -14,6 +14,10 @@ export interface AssetRecord {
   duration?: number
   photographer: string
   photographerUrl?: string
+  license?: string
+  licenseUrl?: string
+  description?: string
+  sourceUrl?: string
   query: string
   filePath?: string
   status: 'pending' | 'downloading' | 'completed' | 'failed'
@@ -105,7 +109,7 @@ export interface JobSummary {
   assetCount: number
 }
 
-export type SecretKeyField = 'openaiKey' | 'geminiKey' | 'openrouterKey' | 'pexelsKey'
+export type SecretKeyField = 'openaiKey' | 'geminiKey' | 'openrouterKey'
 
 export interface PublicSettings {
   llmProvider: LlmProviderId
@@ -124,7 +128,6 @@ export interface PublicSettings {
   openaiKey?: string
   geminiKey?: string
   openrouterKey?: string
-  pexelsKey?: string
   /**
    * Hides the token usage line. The key keeps the name of the cost display it first
    * controlled, so settings saved by earlier versions still work.
