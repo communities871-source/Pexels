@@ -227,7 +227,7 @@ export function installFakeNetwork(): FakeNetwork {
       imageinfo: [{
         url: fileUrl,
         thumburl: type === 'photo'
-          ? `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/640px-${type}-${item.id}.${ext}`
+          ? `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/1880px-${type}-${item.id}.${ext}`
           : `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/640px-${type}-${item.id}.${ext}.jpg`,
         width: item.width,
         height: item.height,
