@@ -28,7 +28,7 @@ describe('runner: what the model gets back from a search', () => {
     const photoWidth = platform === 'YouTube' ? 6000 : 4000
     const photoHeight = platform === 'YouTube' ? 4000 : 6000
     network.pexels
-      .videos('city street', [video(101, 'city-street', [['uhd', videoWidth, videoHeight]] )])
+      .videos('city street', [video(101, 'city-street', [['uhd', videoWidth, videoHeight]])])
       .photos('quiet desk', [photo(201, 'A quiet desk', photoWidth, photoHeight)])
     network.llm
       .tools([submitBeats([ONE_BEAT_SCRIPT])])
