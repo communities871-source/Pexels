@@ -289,7 +289,7 @@ export function installFakeNetwork(): FakeNetwork {
       return new Response(MEDIA_BODY, {
         status: 200,
         headers: {
-          'content-type': /\\.(?:webm|ogv)$/i.test(url.pathname) ? 'video/webm' : 'image/jpeg',
+          'content-type': /\.(?:webm|ogv)$/i.test(url.pathname) ? 'video/webm' : 'image/jpeg',
           'content-length': String(MEDIA_BODY.length)
         }
       })
