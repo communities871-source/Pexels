@@ -14,7 +14,7 @@ import {
 } from '../../scripts/eval/pexels-cache.ts'
 
 const NOW_SECONDS = 1_800_000_000
-const SEARCH_URL = 'https://api.pexels.com/v1/videos/search?query=fishing+boat&per_page=10&page=1'
+const SEARCH_URL = 'https://commons.wikimedia.org/v1/videos/search?query=fishing+boat&per_page=10&page=1'
 
 /** A stand-in for the real request: counts its calls and answers like the Pexels API. */
 function pexelsAnswer(
