@@ -27,6 +27,7 @@ describe('runner media search uses Wikimedia Commons without a media API key', (
               width: 1920,
               height: 1080,
               mime: 'image/jpeg',
+              mediatype: 'BITMAP',
               extmetadata: {
                 Artist: { value: 'Example creator' },
                 LicenseShortName: { value: 'CC BY-SA 4.0' },
@@ -46,6 +47,39 @@ describe('runner media search uses Wikimedia Commons without a media API key', (
     assert.equal(result.photos[0].url, 'https://commons.wikimedia.org/wiki/File:Example.jpg')
     assert.match(requested[0], /commons\.wikimedia\.org\/w\/api\.php/)
     assert.match(requested[0], /filetype%3Abitmap|filetype:bitmap/)
+    assert.match(requested[0], /iiextmetadatafilter/)
     assert.equal(PexelsClient.isQuotaExhausted(), false)
   })
+  it('searches Commons video files and parses duration metadata', async () => {
+    globalThis.fetch = (async () => new Response(JSON.stringify({
+      query: {
+        pages: [{
+          pageid: 456,
+          title: 'File:Example.ogv',
+          imageinfo: [{
+            url: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Example.ogv',
+            thumburl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Example.ogv/640px-Example.ogv.jpg',
+            width: 1280,
+            height: 720,
+            mime: 'video/ogg',
+            mediatype: 'VIDEO',
+            extmetadata: {
+              Artist: { value: 'Video creator' },
+              LicenseShortName: { value: 'CC BY 4.0' },
+              LicenseUrl: { value: 'https://creativecommons.org/licenses/by/4.0/' },
+              ImageDescription: { value: 'A sample clip' },
+              Length: { value: '1 min 2 s' }
+            }
+          }]
+        }]
+      }
+    }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof globalThis.fetch
+
+    const result = await PexelsClient.searchVideos({ query: 'example' })
+    assert.equal(result.videos.length, 1)
+    assert.equal(result.videos[0].duration, 62)
+    assert.equal(result.videos[0].commonsLicense, 'CC BY 4.0')
+    assert.equal(result.videos[0].video_files[0].file_type, 'video/ogg')
+  })
+
 })
