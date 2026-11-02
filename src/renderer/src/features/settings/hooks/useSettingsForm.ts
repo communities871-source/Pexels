@@ -63,8 +63,7 @@ export function useSettingsForm(): SettingsForm {
             ...prev,
             openaiKey: latest.openaiKey,
             geminiKey: latest.geminiKey,
-            openrouterKey: latest.openrouterKey,
-            pexelsKey: latest.pexelsKey
+            openrouterKey: latest.openrouterKey
           }
         : prev
     )
