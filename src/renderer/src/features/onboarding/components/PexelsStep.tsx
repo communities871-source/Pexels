@@ -1,10 +1,9 @@
-import type { OnboardingController } from '../hooks/useOnboarding'
 import { FormPanel } from './FormPanel'
 import { StepCard } from './StepCard'
 import { StepHeader } from './StepHeader'
 import { StepNav } from './StepNav'
 
-type PexelsStepProps = Pick<OnboardingController, never> & {
+type PexelsStepProps = {
   onBack: () => void
   onNext: () => void
 }
