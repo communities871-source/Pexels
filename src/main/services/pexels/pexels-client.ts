@@ -51,7 +51,7 @@ export class PexelsClient {
     url.searchParams.set('prop', 'imageinfo')
     url.searchParams.set('iiprop', 'url|size|mime|mediatype|extmetadata')
     url.searchParams.set('iiextmetadatafilter', 'Artist|LicenseShortName|LicenseUrl|ImageDescription|Length')
-    url.searchParams.set('iiurlwidth', '640')
+    url.searchParams.set('iiurlwidth', '1920')
     url.searchParams.set('origin', '*')
     const response = await fetchWithRetry(url.toString(), {
       label: 'Wikimedia Commons search',
@@ -186,7 +186,7 @@ export class PexelsClient {
     url.searchParams.set('prop', 'imageinfo')
     url.searchParams.set('iiprop', 'url|size|mime|mediatype|extmetadata')
     url.searchParams.set('iiextmetadatafilter', 'Artist|LicenseShortName|LicenseUrl|ImageDescription|Length')
-    url.searchParams.set('iiurlwidth', '640')
+    url.searchParams.set('iiurlwidth', '1920')
     url.searchParams.set('origin', '*')
     const response = await fetchWithRetry(url.toString(), { label: 'Wikimedia Commons file lookup', maxRetries: 2, init: { headers: { 'User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' } } })
     if (!response.ok) throw new ApiError(`Wikimedia Commons API error: HTTP ${response.status}`, 'transient', response.status)
