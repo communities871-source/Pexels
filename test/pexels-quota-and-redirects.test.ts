@@ -22,10 +22,10 @@ describe('Download redirect validation', () => {
       return requested.length === 1 ? redirectTo('https://upload.wikimedia.org/final.mp4') : ok()
     }) as typeof globalThis.fetch
 
-    const response = await fetchValidatedDownload('https://upload.wikimedia.org/start.jpg')
+    const response = await fetchValidatedDownload('https://commons.wikimedia.org/start.jpg')
     assert.equal(response.status, 200)
     assert.deepEqual(requested, [
-      'https://upload.wikimedia.org/start.jpg',
+      'https://commons.wikimedia.org/start.jpg',
       'https://upload.wikimedia.org/final.mp4'
     ])
   })
@@ -38,7 +38,7 @@ describe('Download redirect validation', () => {
     }) as typeof globalThis.fetch
 
     await assert.rejects(
-      () => fetchValidatedDownload('https://upload.wikimedia.org/start.jpg'),
+      () => fetchValidatedDownload('https://commons.wikimedia.org/start.jpg'),
       /not an allowed Wikimedia Commons host/
     )
     assert.deepEqual(requested, ['https://upload.wikimedia.org/start.jpg'])
