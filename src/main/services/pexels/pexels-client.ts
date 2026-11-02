@@ -21,6 +21,7 @@ type CommonsPage = {
     width?: number
     height?: number
     mime?: string
+    mediatype?: string
     extmetadata?: Record<string, { value?: string; source?: string; hidden?: string }>
   }>
 }
@@ -48,7 +49,8 @@ export class PexelsClient {
     url.searchParams.set('gsrlimit', String(Math.min(50, perPage)))
     url.searchParams.set('gsroffset', String((Math.max(1, page) - 1) * Math.min(50, perPage)))
     url.searchParams.set('prop', 'imageinfo')
-    url.searchParams.set('iiprop', 'url|size|mime|extmetadata')
+    url.searchParams.set('iiprop', 'url|size|mime|mediatype|extmetadata')
+    url.searchParams.set('iiextmetadatafilter', 'Artist|LicenseShortName|LicenseUrl|ImageDescription|Length')
     url.searchParams.set('iiurlwidth', '640')
     url.searchParams.set('origin', '*')
     const response = await fetchWithRetry(url.toString(), {
@@ -69,7 +71,9 @@ export class PexelsClient {
     return Object.values(data.query?.pages || {}).filter((page) => {
       const info = page.imageinfo?.[0]
       if (!info?.url || !info.width || !info.height) return false
-      return type === 'video' ? Boolean(info.mime && /^(video\/|application\/(ogg|x-ogg))/.test(info.mime)) : Boolean(info.mime?.startsWith('image/'))
+      return type === 'video'
+        ? info.mediatype === 'VIDEO' || Boolean(info.mime && /^(video\/|application\/(ogg|x-ogg))/.test(info.mime))
+        : info.mediatype === 'BITMAP' || Boolean(info.mime?.startsWith('image/'))
     })
   }
 
@@ -111,11 +115,23 @@ export class PexelsClient {
     }
   }
 
+  private static filterOrientation(pages: CommonsPage[], orientation?: 'landscape' | 'portrait' | 'square'): CommonsPage[] {
+    if (!orientation) return pages
+    return pages.filter((page) => {
+      const info = page.imageinfo?.[0]
+      if (!info?.width || !info.height) return false
+      const ratio = info.width / info.height
+      if (orientation === 'landscape') return ratio > 1.05
+      if (orientation === 'portrait') return ratio < 0.95
+      return ratio >= 0.95 && ratio <= 1.05
+    })
+  }
+
   public static async searchPhotos(input: PexelsPhotoSearchInput, abortSignal?: AbortSignal): Promise<PexelsPhotoSearchResult> {
     const cacheKey = PexelsSearchCache.buildKey('photo', input as unknown as Record<string, unknown>)
     const cached = PexelsSearchCache.get<PexelsPhotoSearchResult>(cacheKey)
     if (cached) return cached
-    const pages = await this.searchCommons(input.query, 'photo', input.page, input.per_page, abortSignal)
+    const pages = this.filterOrientation(await this.searchCommons(input.query, 'photo', input.page, input.per_page, abortSignal), input.orientation)
     const parsed = { total_results: pages.length, page: input.page || 1, per_page: input.per_page || 15, photos: pages.map((page) => this.photoFromPage(page)) }
     PexelsSearchCache.set(cacheKey, parsed)
     return parsed
@@ -125,7 +141,7 @@ export class PexelsClient {
     const cacheKey = PexelsSearchCache.buildKey('video', input as unknown as Record<string, unknown>)
     const cached = PexelsSearchCache.get<PexelsVideoSearchResult>(cacheKey)
     if (cached) return cached
-    const pages = await this.searchCommons(input.query, 'video', input.page, input.per_page, abortSignal)
+    const pages = this.filterOrientation(await this.searchCommons(input.query, 'video', input.page, input.per_page, abortSignal), input.orientation)
     const parsed = { total_results: pages.length, page: input.page || 1, per_page: input.per_page || 10, videos: pages.map((page) => this.videoFromPage(page)) }
     PexelsSearchCache.set(cacheKey, parsed)
     return parsed
@@ -163,7 +179,8 @@ export class PexelsClient {
     url.searchParams.set('formatversion', '2')
     url.searchParams.set('pageids', String(id))
     url.searchParams.set('prop', 'imageinfo')
-    url.searchParams.set('iiprop', 'url|size|mime|extmetadata')
+    url.searchParams.set('iiprop', 'url|size|mime|mediatype|extmetadata')
+    url.searchParams.set('iiextmetadatafilter', 'Artist|LicenseShortName|LicenseUrl|ImageDescription|Length')
     url.searchParams.set('iiurlwidth', '640')
     url.searchParams.set('origin', '*')
     const response = await fetchWithRetry(url.toString(), { label: 'Wikimedia Commons file lookup', maxRetries: 2, init: { headers: { 'User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' } } })
