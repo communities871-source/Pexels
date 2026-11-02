@@ -18,7 +18,7 @@ function slugify(text: string): string {
 export function photo(id: number, alt: string, width = 6000, height = 4000): PexelsPhoto {
   const file = `photo-${id}.jpg`
   const original = `${COMMONS_FILE}/${file}`
-  const thumbnail = `${COMMONS_THUMB}/${file}/640px-${file}`
+  const thumbnail = `${COMMONS_THUMB}/${file}/1880px-${file}`
   return {
     id,
     width,
