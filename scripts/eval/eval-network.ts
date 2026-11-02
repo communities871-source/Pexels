@@ -81,7 +81,7 @@ export function installEvalNetwork(options: EvalNetworkOptions): EvalNetwork {
         return new Response(PLACEHOLDER_MEDIA, {
           status: 200,
           headers: {
-            'content-type': url.hostname === 'images.pexels.com' ? 'image/jpeg' : 'video/mp4',
+            'content-type': /\.(?:jpe?g|png|gif|webp|avif)$/i.test(url.pathname) ? 'image/jpeg' : 'video/mp4',
             'content-length': String(PLACEHOLDER_MEDIA.length)
           }
         })
