@@ -26,8 +26,8 @@ describe('runner: the app picks the file when the model names none', () => {
     network.restore()
   })
 
-  it('downloads the smallest full-HD file of a clip', async () => {
-    // The clip comes as 3840x2160, 1920x1080 and 960x540.
+  it('downloads the Commons original video file', async () => {
+    // Commons exposes the original video file as the downloadable variant.
     const clip = video(101, 'city-street')
     network.pexels.videos('city street', [clip])
     network.llm
@@ -45,7 +45,7 @@ describe('runner: the app picks the file when the model names none', () => {
     )
     const [asset] = run.manifest.beats[0].assets
     assert.equal(asset.downloadUrl, videoFileUrl(clip, 'hd'))
-    assert.deepEqual([asset.width, asset.height], [1920, 1080])
+    assert.deepEqual([asset.width, asset.height], [3840, 2160])
     const [selected] = toolResults(run, 'select_assets_for_download')
     assert.deepEqual(selected.selections, [{ pexelsId: 101, status: 'queued' }])
   })
