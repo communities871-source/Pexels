@@ -14,7 +14,7 @@ import {
 /** The Settings menu, in page order. Each panel renders its section with the matching id. */
 export const SETTINGS_SECTIONS = [
   { id: 'settings-ai', label: 'AI provider', icon: CpuIcon },
-  { id: 'settings-pexels', label: 'Pexels', icon: ImagesIcon },
+  { id: 'settings-pexels', label: 'Media source', icon: ImagesIcon },
   { id: 'settings-storage', label: 'Storage', icon: FolderIcon },
   { id: 'settings-appearance', label: 'Appearance', icon: PaletteIcon },
   { id: 'settings-safety', label: 'Safety', icon: ShieldCheckIcon },
