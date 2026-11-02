@@ -64,7 +64,7 @@ describe('describeCandidate', () => {
     assert.equal(described.about, 'waves on a beach')
     assert.equal(
       described.thumbnailUrl,
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/video-7.webm/1880px-video-7.webm.jpg'
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/video-7.webm/640px-video-7.webm.jpg'
     )
   })
 
@@ -75,7 +75,7 @@ describe('describeCandidate', () => {
     assert.equal(described.seconds, undefined)
     assert.equal(
       described.thumbnailUrl,
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/photo-8.jpg/1880px-photo-8.jpg'
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/photo-8.jpg/640px-photo-8.jpg'
     )
   })
 
