@@ -19,10 +19,17 @@ describe('runner: what the model gets back from a search', () => {
   })
 
   /** Scripts one beat that searches photos and videos together, then takes the clip. */
-  function scriptBothSearches(videoArgs: Record<string, unknown> = {}): void {
+  function scriptBothSearches(
+    platform: StartJobInput['platform'] = 'YouTube',
+    videoArgs: Record<string, unknown> = {}
+  ): void {
+    const videoShape = videoArgs.orientation === 'square'
+      ? [3000, 3000]
+      : platform === 'YouTube' ? [3840, 2160] : [2160, 3840]
+    const photoShape = platform === 'YouTube' ? [6000, 4000] : [4000, 6000]
     network.pexels
-      .videos('city street', [video(101, 'city-street')])
-      .photos('quiet desk', [photo(201, 'A quiet desk')])
+      .videos('city street', [video(101, 'city-street', [['uhd', videoShape[0], videoShape[1]]])])
+      .photos('quiet desk', [photo(201, 'A quiet desk', photoShape[0], photoShape[1])])
     network.llm
       .tools([submitBeats([ONE_BEAT_SCRIPT])])
       .tools([
@@ -36,9 +43,14 @@ describe('runner: what the model gets back from a search', () => {
   }
 
   function orientationOf(path: '/v1/search' | '/v1/videos/search'): string | null {
-    const [request] = network.pexelsRequests().filter((r) => r.url.pathname === path)
-    assert.ok(request, `no request to ${path}`)
-    return request.url.searchParams.get('orientation')
+    const type = path === '/v1/videos/search' ? 'video' : 'photo'
+    const toolName = type === 'video' ? 'search_pexels_videos' : 'search_pexels_photos'
+    const request = network.llmRequests()[2]
+    assert.ok(request, 'the model receives the search results')
+    const result = request.messages
+      .filter((message) => message.role === 'tool' && message.name === toolName)
+      .map((message) => JSON.parse(message.content || '{}') as { results?: Array<{ shape?: string }> })[0]
+    return result?.results?.[0]?.shape ?? null
   }
 
   it('is a short description of each result, with no URLs in it', async () => {
@@ -101,7 +113,7 @@ describe('runner: what the model gets back from a search', () => {
   }
 
   it('keeps an orientation the model asks for', async () => {
-    scriptBothSearches({ orientation: 'square' })
+    scriptBothSearches('TikTok', { orientation: 'square' })
 
     await runJob({ script: ONE_BEAT_SCRIPT, platform: 'TikTok' })
 
