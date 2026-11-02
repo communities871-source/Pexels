@@ -12,7 +12,6 @@ declare global {
         getPublicSettings(): Promise<Record<string, unknown>>
         updateSettings(input: Record<string, unknown>): Promise<Record<string, unknown>>
         testProvider(input: Record<string, unknown>): Promise<Record<string, unknown>>
-        testPexelsKey(key: string): Promise<Record<string, unknown>>
         chooseDownloadFolder(): Promise<string | null>
         openAppDataFolder(): Promise<void>
       }
