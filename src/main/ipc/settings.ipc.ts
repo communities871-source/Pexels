@@ -3,7 +3,6 @@ import { SettingsStore } from '../services/storage/settings-store.ts'
 import { SecureSecrets } from '../services/storage/secure-secrets.ts'
 import { LlmProviderFactory } from '../services/llm/llm-provider.ts'
 import { resetLlmCircuit } from '../services/llm/llm-fetch.ts'
-import { PexelsClient } from '../services/pexels/pexels-client.ts'
 import { z } from 'zod'
 
 const SettingsUpdateSchema = z.object({
@@ -34,10 +33,9 @@ const SettingsUpdateSchema = z.object({
   openaiKey: z.string().optional(),
   geminiKey: z.string().optional(),
   openrouterKey: z.string().optional(),
-  pexelsKey: z.string().optional(),
   // Blank key fields mean "leave unchanged", so deleting a stored key is its own request.
   removeSecrets: z
-    .array(z.enum(['openaiKey', 'geminiKey', 'openrouterKey', 'pexelsKey']))
+    .array(z.enum(['openaiKey', 'geminiKey', 'openrouterKey']))
     .optional()
 })
 
@@ -46,8 +44,6 @@ const ProviderTestRequestSchema = z.object({
   apiKey: z.string(),
   modelId: z.string()
 })
-
-const PexelsKeySchema = z.string().max(512).optional()
 
 const MASKED_SECRET = '••••••••••••••••'
 
@@ -61,14 +57,12 @@ async function getPublicSettingsWithSecretStatus(): Promise<Record<string, unkno
   const openaiKey = await SecureSecrets.hasSecret('openaiKey')
   const geminiKey = await SecureSecrets.hasSecret('geminiKey')
   const openrouterKey = await SecureSecrets.hasSecret('openrouterKey')
-  const pexelsKey = await SecureSecrets.hasSecret('pexelsKey')
 
   return {
     ...settings,
     openaiKey: openaiKey ? MASKED_SECRET : '',
     geminiKey: geminiKey ? MASKED_SECRET : '',
     openrouterKey: openrouterKey ? MASKED_SECRET : '',
-    pexelsKey: pexelsKey ? MASKED_SECRET : ''
   }
 }
 
@@ -83,26 +77,22 @@ export function registerSettingsHandlers(): void {
     // Only write secrets when a real (non-empty, non-masked) value is provided.
     // Blank/whitespace means "leave unchanged" — never overwrite or delete a stored key.
     const applySecret = async (
-      key: 'openaiKey' | 'geminiKey' | 'openrouterKey' | 'pexelsKey',
+      key: 'openaiKey' | 'geminiKey' | 'openrouterKey',
       value: string | undefined
     ): Promise<void> => {
       if (value === undefined || isMaskedSecret(value)) return
       const trimmed = value.trim()
       if (!trimmed) return
       await SecureSecrets.setSecret(key, trimmed)
-      // Quota headers belong to the key that produced them.
-      if (key === 'pexelsKey') PexelsClient.resetQuota()
     }
 
     for (const key of input.removeSecrets ?? []) {
       await SecureSecrets.setSecret(key, '')
-      if (key === 'pexelsKey') PexelsClient.resetQuota()
     }
 
     await applySecret('openaiKey', input.openaiKey)
     await applySecret('geminiKey', input.geminiKey)
     await applySecret('openrouterKey', input.openrouterKey)
-    await applySecret('pexelsKey', input.pexelsKey)
 
     const publicSettings = Object.fromEntries(
       Object.entries({
@@ -149,46 +139,6 @@ export function registerSettingsHandlers(): void {
     return await client.testConnection({ apiKey }, modelId?.trim())
   })
 
-  ipcMain.handle('settings:testPexelsKey', async (_, rawKey: unknown) => {
-    try {
-      const apiKey = PexelsKeySchema.parse(rawKey) ?? ''
-      let activeKey = apiKey
-      if (activeKey === 'CURRENT_KEY_ON_DISK') {
-        activeKey = await SecureSecrets.getSecret('pexelsKey')
-      }
-      activeKey = (activeKey || '').trim()
-      if (!activeKey) {
-        return {
-          success: false,
-          message: 'Pexels API key is missing. Please enter an API key.'
-        }
-      }
-      // Reset circuit breaker so testing a key doesn't fail on a stale open breaker
-      PexelsClient.resetCircuit()
-      const response = await fetch('https://api.pexels.com/v1/search?query=test&per_page=1', {
-        headers: { Authorization: activeKey },
-        signal: AbortSignal.timeout(15_000)
-      })
-      if (response.ok) {
-        return { success: true, message: 'Pexels API key is valid!' }
-      }
-      if (response.status === 401 || response.status === 403) {
-        return {
-          success: false,
-          message: `Invalid Pexels API key. Authentication failed (HTTP ${response.status}).`
-        }
-      }
-      if (response.status === 429) {
-        return {
-          success: false,
-          message: 'Pexels API rate limit reached (HTTP 429). Please try again later.'
-        }
-      }
-      return { success: false, message: `Pexels API error: HTTP ${response.status}` }
-    } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : String(err) }
-    }
-  })
 
   ipcMain.handle('settings:chooseDownloadFolder', async () => {
     // Electron 43 stopped remembering the last folder, so open at the current download folder.
