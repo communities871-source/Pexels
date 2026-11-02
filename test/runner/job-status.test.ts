@@ -212,7 +212,7 @@ describe('runner: job status', () => {
     })
 
     it('commons_rate_limited: Wikimedia Commons rate-limits a search', async () => {
-      network.pexels.failNextSearch(429)
+      network.pexels.failNextSearch(429, 4)
       network.llm
         .tools([submitBeats([ONE_BEAT_SCRIPT])])
         .tools([searchVideos('beat_1', 'city street')])
