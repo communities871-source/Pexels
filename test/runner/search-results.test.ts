@@ -102,7 +102,7 @@ describe('runner: what the model gets back from a search', () => {
     ['Instagram Reels', 'portrait']
   ] as Array<[StartJobInput['platform'], string]>) {
     it(`searches ${shape} for ${platform} when the model sets no orientation`, async () => {
-      scriptBothSearches()
+      scriptBothSearches(platform)
 
       await runJob({ script: ONE_BEAT_SCRIPT, platform })
 
