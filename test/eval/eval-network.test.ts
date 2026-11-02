@@ -10,7 +10,7 @@ import {
 } from '../../scripts/eval/eval-network.ts'
 import { createLlmMeter, isLlmRequest, readWireUsage } from '../../scripts/eval/llm-meter.ts'
 
-const SEARCH_URL = 'https://api.pexels.com/v1/search?query=harbor&per_page=15'
+const SEARCH_URL = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch=harbor&gsrlimit=15'
 const CHAT_URL = 'https://api.openai.com/v1/chat/completions'
 const PEXELS_KEY = 'pexels-key-that-must-stay-out-of-the-cache'
 
@@ -40,7 +40,7 @@ describe('eval network: a stubbed fetch behind the evaluation layer', () => {
     globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
       const url = new URL(String(input))
       requests.push({ url: url.href, method: (init?.method || 'GET').toUpperCase() })
-      if (url.hostname === 'api.pexels.com') {
+      if (url.hostname === 'commons.wikimedia.org') {
         return json({ total_results: 1, photos: [{ id: 201 }] }, 200, {
           'X-Ratelimit-Limit': '200',
           'X-Ratelimit-Remaining': String(200 - requests.length),
@@ -79,7 +79,7 @@ describe('eval network: a stubbed fetch behind the evaluation layer', () => {
 
     // The second run: a new layer on the same folder, with the parameters in another order.
     layer = installEvalNetwork({ cacheDir })
-    const second = await fetch('https://api.pexels.com/v1/search?per_page=15&query=harbor', {
+    const second = await fetch('https://commons.wikimedia.org/w/api.php?gsrlimit=15&gsrsearch=harbor&generator=search&format=json&action=query', {
       headers: { Authorization: PEXELS_KEY }
     })
 
@@ -127,7 +127,7 @@ describe('eval network: a stubbed fetch behind the evaluation layer', () => {
   it('passes media downloads through and counts them', async () => {
     layer = installEvalNetwork({ cacheDir })
 
-    const response = await fetch('https://videos.pexels.com/video-files/101/101-hd.mp4')
+    const response = await fetch('https://upload.wikimedia.org/wikipedia/commons/a/a1/video-101.webm')
 
     assert.equal((await response.arrayBuffer()).byteLength, 2048)
     assert.equal(requests.length, 1)
@@ -138,7 +138,7 @@ describe('eval network: a stubbed fetch behind the evaluation layer', () => {
     layer = installEvalNetwork({ cacheDir, noDownload: true })
 
     const clip = await fetch('https://videos.pexels.com/video-files/101/101-hd.mp4')
-    const still = await fetch('https://images.pexels.com/photos/201/pexels-photo-201.jpeg')
+    const still = await fetch('https://upload.wikimedia.org/wikipedia/commons/a/a1/photo-201.jpg')
 
     assert.equal(requests.length, 0, 'no media request left the process')
     assert.equal(clip.headers.get('content-type'), 'video/mp4')
@@ -159,12 +159,12 @@ describe('eval network: a stubbed fetch behind the evaluation layer', () => {
   it('leaves every other request alone', async () => {
     layer = installEvalNetwork({ cacheDir })
 
-    await fetch('https://api.pexels.com/v1/collections', { method: 'POST' })
+    await fetch('https://commons.wikimedia.org/w/api.php/collections', { method: 'POST' })
     await fetch('https://example.test/anything')
 
     assert.deepEqual(
       requests.map((request) => `${request.method} ${request.url}`),
-      ['POST https://api.pexels.com/v1/collections', 'GET https://example.test/anything']
+      ['POST https://commons.wikimedia.org/w/api.php/collections', 'GET https://example.test/anything']
     )
     assert.deepEqual(layer.counters(), {
       llmCalls: 0,
