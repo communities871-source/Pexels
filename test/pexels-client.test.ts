@@ -2,16 +2,8 @@ import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 import { PexelsRateLimitTracker } from '../src/main/services/pexels/pexels-rate-limit.ts'
 import { validateDownloadUrl } from '../src/main/services/pexels/download-url-validation.ts'
-import {
-  buildPexelsAssetUrl,
-  buildAssetCreditLine,
-  buildManifestAttribution
-} from '../src/main/services/pexels/pexels-attribution.ts'
+import { buildManifestAttribution } from '../src/main/services/pexels/pexels-attribution.ts'
 import { PexelsSearchCache } from '../src/main/services/pexels/pexels-search-cache.ts'
-import {
-  PEXELS_VIDEO_SEARCH_URL,
-  pexelsVideoByIdUrl
-} from '../src/main/services/pexels/pexels-api-urls.ts'
 import {
   PexelsPhotoSearchResultSchema,
   PexelsVideoSearchResultSchema
@@ -25,7 +17,7 @@ afterEach(() => {
   PexelsRateLimitTracker.clear()
 })
 
-describe('Pexels Rate Limiting & Quota Tracker', () => {
+describe('Legacy quota tracker compatibility', () => {
   it('updates from valid HTTP rate limit headers', () => {
     const headers = new Headers({
       'X-Ratelimit-Limit': '200',
@@ -81,76 +73,41 @@ describe('Pexels Rate Limiting & Quota Tracker', () => {
   })
 })
 
-describe('Download URL Validation', () => {
-  it('accepts valid Pexels CDN image and video URLs', () => {
-    assert.doesNotThrow(() =>
-      validateDownloadUrl('https://images.pexels.com/photos/12345/pexels-photo-12345.jpeg')
-    )
-    assert.doesNotThrow(() =>
-      validateDownloadUrl('https://videos.pexels.com/video-files/67890/hd_1920_1080_25fps.mp4')
-    )
-    assert.doesNotThrow(() =>
-      validateDownloadUrl('https://player.vimeo.com/external/12345.hd.mp4?s=abc&profile_id=123')
-    )
+describe('Wikimedia Commons download URL validation', () => {
+  it('accepts Commons media file hosts', () => {
+    assert.doesNotThrow(() => validateDownloadUrl('https://upload.wikimedia.org/wikipedia/commons/a/a1/photo.jpg'))
+    assert.doesNotThrow(() => validateDownloadUrl('https://commons.wikimedia.org/wiki/File:Example.ogv'))
   })
 
   it('rejects non-HTTPS protocols', () => {
-    assert.throws(
-      () => validateDownloadUrl('http://images.pexels.com/photos/123.jpg'),
-      /HTTPS required/
-    )
-    assert.throws(() => validateDownloadUrl('file:///C:/Users/test/photo.jpg'), /HTTPS required/)
+    assert.throws(() => validateDownloadUrl('http://upload.wikimedia.org/photo.jpg'), /HTTPS required/)
+    assert.throws(() => validateDownloadUrl('file:///tmp/photo.jpg'), /HTTPS required/)
   })
 
-  it('rejects unauthorized external hosts and private IP addresses', () => {
-    assert.throws(
-      () => validateDownloadUrl('https://evil-attacker.com/malicious.mp4'),
-      /not an allowed Pexels CDN/
-    )
-    assert.throws(
-      () => validateDownloadUrl('https://localhost/image.png'),
-      /not an allowed Pexels CDN/
-    )
-    assert.throws(
-      () => validateDownloadUrl('https://192.168.1.1/video.mp4'),
-      /not an allowed Pexels CDN/
-    )
+  it('rejects unauthorized hosts and private IP addresses', () => {
+    assert.throws(() => validateDownloadUrl('https://evil-attacker.com/malicious.mp4'), /not an allowed Wikimedia Commons host/)
+    assert.throws(() => validateDownloadUrl('https://localhost/image.png'), /not an allowed Wikimedia Commons host/)
+    assert.throws(() => validateDownloadUrl('https://192.168.1.1/video.mp4'), /not an allowed Wikimedia Commons host/)
   })
 })
 
-describe('Pexels Attribution & URL Helpers', () => {
-  it('builds canonical Pexels webpage URLs', () => {
-    assert.equal(buildPexelsAssetUrl('photo', 12345), 'https://www.pexels.com/photo/12345/')
-    assert.equal(buildPexelsAssetUrl('video', 67890), 'https://www.pexels.com/video/67890/')
-  })
-
-  it('builds clear credit lines', () => {
-    assert.equal(
-      buildAssetCreditLine('photo', 'Jane Doe', 101),
-      'Photo by Jane Doe on Pexels (ID 101)'
-    )
-    assert.equal(
-      buildAssetCreditLine('video', 'John Smith', 202),
-      'Video by John Smith on Pexels (ID 202)'
-    )
-  })
-
-  it('builds complete manifest attribution document', () => {
-    const attr = buildManifestAttribution([
-      {
-        id: 'photo_101',
-        type: 'photo',
-        pexelsId: 101,
-        url: 'https://images.pexels.com/photos/101/download.jpg',
-        photographer: 'Jane Doe',
-        photographerUrl: 'https://www.pexels.com/@janedoe'
-      }
-    ])
-
-    assert.equal(attr.pexels.url, 'https://www.pexels.com')
+describe('Wikimedia Commons manifest attribution', () => {
+  it('records each asset page, creator, and license', () => {
+    const attr = buildManifestAttribution([{
+      id: 'photo_101',
+      type: 'photo',
+      pexelsId: 101,
+      url: 'https://commons.wikimedia.org/wiki/File:Example.jpg',
+      photographer: 'Jane Doe',
+      photographerUrl: 'https://commons.wikimedia.org/wiki/File:Example.jpg',
+      license: 'CC BY-SA 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/'
+    }])
+    assert.equal(attr.source.name, 'Wikimedia Commons')
     assert.equal(attr.assets.length, 1)
-    assert.equal(attr.assets[0].pexelsUrl, 'https://www.pexels.com/photo/101/')
-    assert.equal(attr.assets[0].creditLine, 'Photo by Jane Doe on Pexels (ID 101)')
+    assert.equal(attr.assets[0].commonsUrl, 'https://commons.wikimedia.org/wiki/File:Example.jpg')
+    assert.equal(attr.assets[0].license, 'CC BY-SA 4.0')
+    assert.equal(attr.assets[0].creditLine, 'Jane Doe — CC BY-SA 4.0')
   })
 })
 
@@ -179,7 +136,7 @@ describe('Pexels Search Cache', () => {
   })
 })
 
-describe('Pexels Zod Schemas', () => {
+describe('Internal media adapter schemas', () => {
   it('validates and parses photo search payloads', () => {
     const rawPhotoResponse = {
       total_results: 1,
@@ -294,17 +251,3 @@ describe('Pexels Zod Schemas', () => {
   })
 })
 
-describe('Pexels video API base paths', () => {
-  it('uses /v1/videos/search (legacy /videos/search is deprecated)', () => {
-    assert.equal(PEXELS_VIDEO_SEARCH_URL, 'https://api.pexels.com/v1/videos/search')
-    assert.equal(
-      PEXELS_VIDEO_SEARCH_URL.includes('/videos/search') &&
-        !PEXELS_VIDEO_SEARCH_URL.includes('/v1/videos/search'),
-      false
-    )
-  })
-
-  it('uses /v1/videos/videos/:id for get-by-id', () => {
-    assert.equal(pexelsVideoByIdUrl(12345), 'https://api.pexels.com/v1/videos/videos/12345')
-  })
-})
