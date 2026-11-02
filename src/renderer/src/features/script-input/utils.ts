@@ -41,7 +41,7 @@ export function getMissingCredentials(settings: PublicSettings | null): MissingC
 }
 
 export function describeMissingCredentials(
-  missing: Exclude<MissingCredentials, null>,
+  _missing: Exclude<MissingCredentials, null>,
   provider: string
 ): string {
   return `Active LLM Provider (${provider.toUpperCase()}) API Key is missing.`
