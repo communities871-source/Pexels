@@ -8,9 +8,9 @@ StockFinder AI is a free, open-source desktop app for YouTube creators, short-fo
 
 [![Website](https://img.shields.io/badge/website-stockfinderai.birol.tech-05df72)](https://stockfinderai.birol.tech)
 [![Developer](https://img.shields.io/badge/developer-birol.tech-purple)](https://birol.tech)
-[![Version](https://img.shields.io/badge/version-1.4.0-cyber)](https://github.com/birol-dev/Pexels/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-cyber)](https://github.com/communities871-source/Pexels/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](#download)
-[![License](https://img.shields.io/badge/license-Open%20Source-blue)](https://github.com/birol-dev/Pexels)
+[![License](https://img.shields.io/badge/license-Open%20Source-blue)](https://github.com/communities871-source/Pexels)
 
 ---
 
@@ -66,7 +66,7 @@ Pause before downloads, approve or reject individual assets, and rerun failed jo
 
 ### Open source
 
-Inspect the code, report bugs, or contribute on [GitHub](https://github.com/birol-dev/Pexels).
+Inspect the code, report bugs, or contribute on [GitHub](https://github.com/communities871-source/Pexels).
 
 ---
 
@@ -83,7 +83,7 @@ Inspect the code, report bugs, or contribute on [GitHub](https://github.com/biro
 
 - **Official Website & Docs**: [https://stockfinderai.birol.tech](https://stockfinderai.birol.tech)
 - **Developer & Projects**: [https://birol.tech](https://birol.tech)
-- **Pre-built Installers**: [GitHub Releases](https://github.com/birol-dev/Pexels/releases)
+- **Pre-built Installers**: [GitHub Releases](https://github.com/communities871-source/Pexels/releases)
 
 | Platform | Command (build from source) |
 | -------- | --------------------------- |
@@ -128,7 +128,7 @@ The in-app onboarding wizard walks you through setup.
 
 The app checks GitHub Releases for updates every six hours. You can turn this off in Settings.
 
-The Skip explicit content and Avoid people & faces settings are best effort, because they read the metadata Commons provides for each result (file title, description, and creator) and not the picture; Pexels' terms ban uploading sexually explicit material and its license says identifiable people must not appear in a bad light or in a way that is offensive, so review the footage you keep.
+The Skip explicit content and Avoid people & faces settings are best effort: they use the metadata Commons provides for each file (title, description, and creator), not visual inspection. Review every file before use, and check its individual license and attribution requirements on its Commons file page.
 
 ---
 
@@ -195,7 +195,7 @@ StockFinder AI helps with: AI stock footage search, Wikimedia Commons video down
 
 Found a bug or want to add a feature?
 
-1. [Open an issue](https://github.com/birol-dev/Pexels/issues) — describe the problem or idea
+1. [Open an issue](https://github.com/communities871-source/Pexels/issues) — describe the problem or idea
 2. Fork the repo and open a pull request
 3. Star the repo if it saves you a run — it helps other creators find the tool
 
@@ -207,7 +207,7 @@ StockFinder AI is created and maintained by [Birol](https://birol.tech).
 
 - **Website & Documentation**: [https://stockfinderai.birol.tech](https://stockfinderai.birol.tech)
 - **Developer Website**: [https://birol.tech](https://birol.tech)
-- **GitHub Repository**: [https://github.com/birol-dev/Pexels](https://github.com/birol-dev/Pexels)
+- **GitHub Repository**: [https://github.com/communities871-source/Pexels](https://github.com/communities871-source/Pexels)
 
 ---
 
@@ -228,13 +228,13 @@ StockFinder AI is created and maintained by [Birol](https://birol.tech).
 
 - **Reasoning vs tool calls**: OpenRouter DeepSeek V4.1 Flash defaults to high reasoning, which spent the whole 4,000-token cap thinking (`finish_reason: length`) and never called `submit_script_beats`. Structured turns now send `reasoning.enabled=false` / `effort=low`.
 - **32,768 output tokens**: Beat parsing, idea expand, and agent turns ask for up to 32,768 output tokens, the completion budget OpenRouter documents for reasoning models (`max_tokens` covers thinking + visible tokens). Builds after 1.3.2 treat this as the first request, not a fixed cap: when a provider answers HTTP 400 because the model allows fewer (for example `gpt-4o` at 16,384), the app reads the limit from the error message, or halves the request when the message gives no number, resends the turn, and keeps that limit for the same endpoint and model until the app is closed. There is no model table, and the model id you enter is still sent unchanged.
-- **10-minute LLM wait**: LLM replies wait at least 600 seconds so a full 32k generation on a ~60 tok/s OpenRouter route can finish. Pexels still uses the timeout slider.
+- **10-minute LLM wait**: LLM replies wait at least 600 seconds so a full 32k generation on a ~60 tok/s OpenRouter route can finish. Wikimedia Commons requests use their own retry and timeout handling.
 
 ### v1.3.1 - LLM Timeout Floor & OpenRouter Cache (2026-09-20)
 
 - **LLM timeout floor**: Agent LLM replies wait at least 180 seconds even when the request-timeout setting is lower, so slow OpenRouter models are not aborted at 60s.
 - **OpenRouter prompt cache**: Pins `session_id`, `prompt_cache_key`, and `cache_control`, and keeps a stable beat catalog prefix so cached prompts stay reusable across agent turns.
-- **Settings**: Request timeout can go up to 600s; Pexels still uses the slider while LLM replies wait at least 3 minutes.
+- **Settings**: Request timeout can go up to 600s; Commons requests use their own retry and timeout handling while LLM replies wait at least 3 minutes.
 
 ### v1.3.0 - Search Modes, Safer Persistence & Agent Hardening (2026-09-20)
 
