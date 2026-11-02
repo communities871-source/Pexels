@@ -9,6 +9,7 @@ export interface PexelsCandidate {
   type: 'photo' | 'video'
   photographer: string
   photographerUrl?: string
+  sourceUrl: string
   license?: string
   licenseUrl?: string
   description?: string
@@ -40,6 +41,7 @@ export function photoCandidate(photo: PexelsPhoto, query: string): PexelsCandida
     type: 'photo',
     photographer: photo.photographer || 'Unknown Photographer',
     photographerUrl: photo.photographer_url || undefined,
+    sourceUrl: photo.url,
     license: photo.commonsLicense,
     licenseUrl: photo.commonsLicenseUrl,
     description: photo.commonsDescription,
@@ -61,6 +63,7 @@ export function videoCandidate(video: PexelsVideo, query: string): PexelsCandida
     type: 'video',
     photographer: video.user?.name || 'Unknown Creator',
     photographerUrl: video.user?.url || undefined,
+    sourceUrl: video.url,
     license: video.commonsLicense,
     licenseUrl: video.commonsLicenseUrl,
     description: video.commonsDescription,
