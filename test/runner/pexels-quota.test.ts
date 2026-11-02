@@ -49,6 +49,9 @@ describe('runner media search uses Wikimedia Commons without a media API key', (
     assert.match(requested[0], /filetype%3Abitmap|filetype:bitmap/)
     assert.match(requested[0], /iiextmetadatafilter/)
     assert.equal(PexelsClient.isQuotaExhausted(), false)
+    PexelsSearchCache.clear()
+    const portraitOnly = await PexelsClient.searchPhotos({ query: 'example', orientation: 'portrait' })
+    assert.equal(portraitOnly.photos.length, 0)
   })
   it('searches Commons video files and parses duration metadata', async () => {
     globalThis.fetch = (async () => new Response(JSON.stringify({
