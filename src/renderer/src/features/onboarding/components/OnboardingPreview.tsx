@@ -7,11 +7,8 @@ import { ProviderLogo } from './ProviderLogo'
 
 type OnboardingPreviewProps = Pick<
   OnboardingController,
-  'step' | 'llmProvider' | 'modelId' | 'hasLlmKey' | 'hasPexelsKey' | 'downloadFolder'
+  'step' | 'llmProvider' | 'modelId' | 'hasLlmKey' | 'downloadFolder'
 >
-
-const pexels = (id: number): string =>
-  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=480`
 
 /** A sample pack: bright, candid frames, one per beat. */
 const BEATS: [number, string][] = [
@@ -29,7 +26,6 @@ export function OnboardingPreview({
   llmProvider,
   modelId,
   hasLlmKey,
-  hasPexelsKey,
   downloadFolder
 }: OnboardingPreviewProps): React.JSX.Element {
   const providerLabel =
@@ -43,7 +39,7 @@ export function OnboardingPreview({
       done: hasLlmKey,
       icon: <ProviderLogo provider={llmProvider} />
     },
-    { step: 3, label: 'Pexels', done: hasPexelsKey, icon: <ImagesIcon /> },
+    { step: 3, label: 'Wikimedia Commons', done: true, icon: <ImagesIcon /> },
     { step: 4, label: 'Folder', done: Boolean(downloadFolder), icon: <FolderIcon /> }
   ]
 
@@ -93,7 +89,7 @@ export function OnboardingPreview({
           {BEATS.map(([id, text], i) => (
             <figure key={id}>
               <div className="aspect-[4/3] overflow-hidden rounded-xl bg-surface-container">
-                <img src={pexels(id)} alt="" className="size-full object-cover" loading="lazy" />
+                <div className="flex size-full items-center justify-center bg-surface-container text-outline"><ImagesIcon size={28} /></div>
               </div>
               <figcaption className="mt-2 flex gap-2 text-[12px] leading-snug text-on-surface">
                 <span className="text-outline tabular-nums">{String(i + 1).padStart(2, '0')}</span>
@@ -142,8 +138,8 @@ function StepCallout({
     },
     3: {
       icon: <ImagesIcon />,
-      title: 'Pexels',
-      body: '15 photos and 11 clips for “The dog decides the route”.'
+      title: 'Wikimedia Commons',
+      body: 'Photos and video clips, ready to search without an API key.'
     },
     4: { icon: <FolderIcon />, title: 'Saved to', body: folder },
     5: {
