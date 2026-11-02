@@ -34,25 +34,16 @@ export function getActiveProviderKey(settings: PublicSettings | null): string {
   return (settings && settings[`${getActiveProvider(settings)}Key`]) || ''
 }
 
-export type MissingCredentials = 'both' | 'pexels' | 'llm' | null
+export type MissingCredentials = 'llm' | null
 
 export function getMissingCredentials(settings: PublicSettings | null): MissingCredentials {
-  const hasPexels = !!settings?.pexelsKey
-  const hasLlm = !!getActiveProviderKey(settings)
-  if (!hasPexels && !hasLlm) return 'both'
-  if (!hasPexels) return 'pexels'
-  if (!hasLlm) return 'llm'
-  return null
+  return getActiveProviderKey(settings) ? null : 'llm'
 }
 
 export function describeMissingCredentials(
   missing: Exclude<MissingCredentials, null>,
   provider: string
 ): string {
-  if (missing === 'both') {
-    return 'Both Pexels API Key and active LLM Provider API Key are missing.'
-  }
-  if (missing === 'pexels') return 'Pexels API Key is missing.'
   return `Active LLM Provider (${provider.toUpperCase()}) API Key is missing.`
 }
 
