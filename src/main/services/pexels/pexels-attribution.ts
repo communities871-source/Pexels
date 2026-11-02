@@ -1,21 +1,24 @@
-export interface PexelsAssetAttribution {
+export interface CommonsAssetAttribution {
   assetId: string
   type: 'photo' | 'video'
-  pexelsId: number
-  pexelsUrl: string
-  photographer: string
-  photographerUrl?: string
+  commonsId: number
+  commonsUrl: string
+  creator: string
+  creatorUrl?: string
+  license: string
+  licenseUrl?: string
+  description?: string
   creditLine: string
 }
 
-export interface PexelsManifestAttribution {
-  pexels: {
+export interface CommonsManifestAttribution {
+  source: {
+    name: 'Wikimedia Commons'
     url: string
     creditText: string
-    logoUrl: string
   }
   usageNote: string
-  assets: PexelsAssetAttribution[]
+  assets: CommonsAssetAttribution[]
 }
 
 interface AttributionAssetInput {
@@ -25,54 +28,50 @@ interface AttributionAssetInput {
   url: string
   photographer: string
   photographerUrl?: string
+  license?: string
+  licenseUrl?: string
+  description?: string
 }
 
-export function buildPexelsAssetUrl(type: 'photo' | 'video', pexelsId: number): string {
-  if (type === 'photo') {
-    return `https://www.pexels.com/photo/${pexelsId}/`
-  }
-  return `https://www.pexels.com/video/${pexelsId}/`
-}
-
-export function buildAssetCreditLine(
-  type: 'photo' | 'video',
-  photographer: string,
-  pexelsId: number
-): string {
-  const label = type === 'photo' ? 'Photo' : 'Video'
-  return `${label} by ${photographer} on Pexels (ID ${pexelsId})`
+export function buildCommonsAssetUrl(url: string): string {
+  return url.startsWith('https://commons.wikimedia.org/')
+    ? url
+    : 'https://commons.wikimedia.org/'
 }
 
 export function buildManifestAttribution(
   assets: AttributionAssetInput[]
-): PexelsManifestAttribution {
+): CommonsManifestAttribution {
   const seenIds = new Set<string>()
-  const attributionAssets: PexelsAssetAttribution[] = []
+  const attributionAssets: CommonsAssetAttribution[] = []
 
-  for (let i = 0; i < assets.length; i++) {
-    const asset = assets[i]
-    if (!asset.pexelsId || !asset.photographer || seenIds.has(asset.id)) continue
+  for (const asset of assets) {
+    if (!asset.pexelsId || seenIds.has(asset.id)) continue
     seenIds.add(asset.id)
-
+    const creator = asset.photographer || 'Wikimedia Commons contributor'
+    const license = asset.license || 'License not identified; verify the file page before reuse'
     attributionAssets.push({
       assetId: asset.id,
       type: asset.type,
-      pexelsId: asset.pexelsId,
-      pexelsUrl: buildPexelsAssetUrl(asset.type, asset.pexelsId),
-      photographer: asset.photographer,
-      photographerUrl: asset.photographerUrl,
-      creditLine: buildAssetCreditLine(asset.type, asset.photographer, asset.pexelsId)
+      commonsId: asset.pexelsId,
+      commonsUrl: buildCommonsAssetUrl(asset.url),
+      creator,
+      creatorUrl: asset.photographerUrl,
+      license,
+      licenseUrl: asset.licenseUrl,
+      description: asset.description,
+      creditLine: `${creator} — ${license}`
     })
   }
 
   return {
-    pexels: {
-      url: 'https://www.pexels.com',
-      creditText: 'Photos and videos provided by Pexels',
-      logoUrl: 'https://images.pexels.com/lib/api/pexels.png'
+    source: {
+      name: 'Wikimedia Commons',
+      url: 'https://commons.wikimedia.org/',
+      creditText: 'Media sourced from Wikimedia Commons. Each file has its own creator and license.'
     },
     usageNote:
-      'Per Pexels API guidelines, credit photographers when possible and link back to Pexels.',
+      'Check each file page and its license before reuse. Attribution and license terms vary by file; this manifest records available creator and license metadata.',
     assets: attributionAssets
   }
 }
