@@ -132,7 +132,7 @@ describe('runner: the pipeline engine', () => {
         pexelsQueries(network).sort(),
         Array.from({ length: 8 }, (_, i) => queryOfBeat(i + 1)).sort()
       )
-      assert.ok(network.pexelsRequests().every((r) => r.url.pathname === '/v1/videos/search'))
+      assert.ok(network.pexelsRequests().every((r) => r.url.pathname === '/w/api.php' && /filetype:video$/i.test(r.url.searchParams.get('gsrsearch') || '')))
       assert.equal(network.mediaRequests().length, 8)
 
       // Each beat got the clip the model ranked first, and it is on disk.
