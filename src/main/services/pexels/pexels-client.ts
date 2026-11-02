@@ -155,7 +155,7 @@ export class PexelsClient {
     url.searchParams.set('formatversion', '2')
     url.searchParams.set('pageids', String(id))
     url.searchParams.set('prop', 'imageinfo')
-    url.searchParams.set('iiprop', 'url|size|mime')
+    url.searchParams.set('iiprop', 'url|size|mime|extmetadata')
     url.searchParams.set('iiurlwidth', '640')
     const response = await fetchWithRetry(url.toString(), { label: 'Wikimedia Commons file lookup', maxRetries: 2, init: { headers: { 'Api-User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' } } })
     if (!response.ok) throw new ApiError(`Wikimedia Commons API error: HTTP ${response.status}`, 'transient', response.status)
