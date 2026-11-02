@@ -13,6 +13,17 @@ describe('photoVariantDimensions', () => {
     return [result.width, result.height]
   }
 
+  it('reads a Wikimedia Commons thumbnail width from its generated URL', () => {
+    assert.deepEqual(
+      photoVariantDimensions(
+        6000,
+        4000,
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Example.jpg/1920px-Example.jpg'
+      ),
+      { width: 1920, height: 1280 }
+    )
+  })
+
   it('gives the source size for "original", which has no size parameters', () => {
     assert.deepEqual(size(landscape.original), [6000, 4000])
   })
