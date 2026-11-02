@@ -85,13 +85,6 @@ export function videoCandidate(video: PexelsVideo, query: string): PexelsCandida
 /** Wikimedia Commons serves file previews from upload.wikimedia.org. */
 const COMMONS_IMAGE_HOST = 'upload.wikimedia.org'
 
-/**
- * Sizes a video's preview image like a photo's "tiny" size: 280 by 200, cropped. This is the
- * query Pexels itself uses for `tiny`. Whether the image CDN honours it for video previews is
- * not confirmed; a preview it serves at another size still works as a thumbnail.
- */
-export const VIDEO_THUMBNAIL_QUERY = 'auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
-
 /** An https URL on the Wikimedia Commons image host, without credentials or a port. */
 function parseCommonsImageUrl(url: string | undefined): URL | undefined {
   if (!url) return undefined
