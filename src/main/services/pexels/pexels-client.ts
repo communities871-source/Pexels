@@ -77,6 +77,11 @@ export class PexelsClient {
     })
   }
 
+  private static filePageUrl(title: string): string {
+    const encodedTitle = encodeURIComponent(title.replace(/ /g, '_')).replace(/%3A/i, ':')
+    return `https://commons.wikimedia.org/wiki/${encodedTitle}`
+  }
+
   private static photoFromPage(page: CommonsPage): PexelsPhoto {
     const info = page.imageinfo![0]
     const original = info.url!
@@ -85,7 +90,7 @@ export class PexelsClient {
       id: page.pageid,
       width: info.width || 0,
       height: info.height || 0,
-      url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+      url: this.filePageUrl(page.title),
       photographer: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor',
       photographer_url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
       src: { original, large2x: preview, large: preview, medium: preview, small: preview, portrait: preview, landscape: preview, tiny: preview },
