@@ -1670,7 +1670,7 @@ export class AgentRunner extends EventEmitter {
       if (this.pexelsQuotaRanOut(error)) {
         this.log(
           'error',
-          `Pexels search failed: ${error instanceof Error ? error.message : String(error)}`
+          `Wikimedia Commons search failed: ${error instanceof Error ? error.message : String(error)}`
         )
         this.pauseIfPexelsQuotaExhausted(error)
       }
@@ -1949,7 +1949,7 @@ export class AgentRunner extends EventEmitter {
             beat.searchQueries.push(args.query)
           }
         }
-        this.log('info', `[${args.beatId}] Querying Pexels Photos API for "${args.query}"...`)
+        this.log('info', `[${args.beatId}] Searching Wikimedia Commons photos for "${args.query}"...`)
         this.updateProgress(
           `Searching photos for "${args.query}" (${args.beatId.replace('_', ' ')})`,
           this.loopProgress()
@@ -1996,7 +1996,7 @@ export class AgentRunner extends EventEmitter {
             beat.searchQueries.push(args.query)
           }
         }
-        this.log('info', `[${args.beatId}] Querying Pexels Videos API for "${args.query}"...`)
+        this.log('info', `[${args.beatId}] Searching Wikimedia Commons videos for "${args.query}"...`)
         this.updateProgress(
           `Searching videos for "${args.query}" (${args.beatId.replace('_', ' ')})`,
           this.loopProgress()
@@ -2058,7 +2058,7 @@ export class AgentRunner extends EventEmitter {
             selectionResults.push({
               pexelsId: sel.pexelsId,
               status: 'rejected',
-              reason: `Security Check Failed: Asset ${sel.pexelsId} (${sel.assetType}) was not found in Pexels search results of this job.`
+              reason: `Security Check Failed: Asset ${sel.pexelsId} (${sel.assetType}) was not found in Wikimedia Commons search results of this job.`
             })
             continue
           }
@@ -2072,7 +2072,7 @@ export class AgentRunner extends EventEmitter {
               pexelsId: sel.pexelsId,
               status: 'rejected',
               reason: sel.variantUrl
-                ? `Security Check Failed: URL for asset ${sel.pexelsId} is not a valid Pexels download variant from this job.`
+                ? `Security Check Failed: URL for asset ${sel.pexelsId} is not a valid Wikimedia Commons download variant from this job.`
                 : `No downloadable file found for asset ${sel.pexelsId}.`
             })
             continue
@@ -2589,7 +2589,7 @@ export class AgentRunner extends EventEmitter {
           this.log('info', `Successfully refreshed video URL: ${freshUrl}`)
           return freshUrl
         }
-        throw new Error('No matching video files found in Pexels details')
+        throw new Error('No matching video files found in Wikimedia Commons file details')
       }
     } catch (err) {
       this.log(
