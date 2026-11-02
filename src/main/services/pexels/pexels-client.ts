@@ -60,12 +60,6 @@ export class PexelsClient {
         signal,
         headers: { 'User-Agent': 'StockFinderAI/1.0 (https://github.com/communities871-source/Pexels; media search)' }
       },
-      // Pause the job on rate limiting instead of retrying behind its back and
-      // potentially continuing with an empty search result.
-      onErrorResponse: (response) =>
-        response.status === 429
-          ? new ApiError('Wikimedia Commons rate limit exceeded.', 'permanent', 429)
-          : undefined,
       isAborted: () => Boolean(signal?.aborted)
     })
     if (!response.ok) {
