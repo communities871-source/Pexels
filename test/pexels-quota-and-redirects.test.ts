@@ -38,10 +38,10 @@ describe('Download redirect validation', () => {
     }) as typeof globalThis.fetch
 
     await assert.rejects(
-      () => fetchValidatedDownload('https://images.pexels.com/start.jpg'),
+      () => fetchValidatedDownload('https://upload.wikimedia.org/start.jpg'),
       /not an allowed Wikimedia Commons host/
     )
-    assert.deepEqual(requested, ['https://images.pexels.com/start.jpg'])
+    assert.deepEqual(requested, ['https://upload.wikimedia.org/start.jpg'])
   })
 
   it('gives up on redirect loops', async () => {
