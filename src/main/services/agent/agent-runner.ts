@@ -1909,16 +1909,7 @@ export class AgentRunner extends EventEmitter {
   }
 
   private logPexelsQuotaIfNeeded(): void {
-    const quota = PexelsClient.getQuotaSnapshot()
-    if (!quota) return
-
-    if (PexelsClient.isQuotaLow()) {
-      const resetDate = new Date(quota.resetAt * 1000).toLocaleString()
-      this.log(
-        'info',
-        `Pexels API quota low: ${quota.remaining}/${quota.limit} requests remaining (resets ${resetDate}).`
-      )
-    }
+    // Wikimedia Commons does not use per-user API keys or Pexels quota headers.
   }
 
   private async executeToolCall(tc: NormalizedToolCall): Promise<void> {
@@ -2358,9 +2349,9 @@ export class AgentRunner extends EventEmitter {
     this.setStatus('paused', 'pexels_quota')
     this.log(
       'error',
-      `Pexels API quota is exhausted, so the job was paused.${resetNote} Resume after the reset, or add a different Pexels key in Settings.`
+      `Wikimedia Commons API is temporarily unavailable, so the job was paused.${resetNote} Please try resuming the job later.`
     )
-    this.updateProgress('Paused — Pexels quota exhausted', this.progress)
+    this.updateProgress('Paused — Commons API unavailable', this.progress)
     this.abortController?.abort()
   }
 
