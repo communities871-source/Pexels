@@ -211,12 +211,7 @@ describe('runner: job status', () => {
       assert.equal(run.runner.getSnapshot().statusReason, 'finished')
     })
 
-    it('pexels_quota: Pexels has no requests left', async () => {
-      network.pexels.quota = {
-        limit: 20000,
-        remaining: 0,
-        resetAt: Math.floor(Date.now() / 1000) + 5 * 24 * 60 * 60
-      }
+    it('commons_rate_limited: Wikimedia Commons rate-limits a search', async () => {
       network.pexels.failNextSearch(429)
       network.llm
         .tools([submitBeats([ONE_BEAT_SCRIPT])])
@@ -225,8 +220,8 @@ describe('runner: job status', () => {
       const run = await runJob({ script: ONE_BEAT_SCRIPT }, {}, { deadlineMs: 2000 })
 
       assert.equal(run.snapshot.status, 'paused')
-      assert.equal(run.snapshot.statusReason, 'pexels_quota')
-      assert.equal(await savedReason(run.summary.downloadPath), 'pexels_quota')
+      assert.equal(run.snapshot.statusReason, 'commons_rate_limited')
+      assert.equal(await savedReason(run.summary.downloadPath), 'commons_rate_limited')
       await run.runner.cancel()
     })
 
@@ -251,14 +246,14 @@ describe('runner: job status', () => {
       await applyTestSettings()
       const saved = await writeSavedJob({
         status: 'paused',
-        agentState: { statusReason: 'pexels_quota' }
+        agentState: { statusReason: 'commons_rate_limited' }
       })
       const runner = new AgentRunner(saved.jobId, { ...ONE_BEAT_INPUT })
 
       await runner.initializeAndLoadState()
 
-      assert.equal(runner.getSnapshot().statusReason, 'pexels_quota')
-      assert.equal(await savedReason(saved.projectDir), 'pexels_quota')
+      assert.equal(runner.getSnapshot().statusReason, 'commons_rate_limited')
+      assert.equal(await savedReason(saved.projectDir), 'commons_rate_limited')
       await runner.cancel()
     })
   })
@@ -319,7 +314,7 @@ describe('runner: job status', () => {
         return ((await invokeIpc('jobs:get', jobId)) as { statusReason?: string }).statusReason
       }
 
-      assert.equal(await reasonOf({ statusReason: 'pexels_quota' }), 'pexels_quota')
+      assert.equal(await reasonOf({ statusReason: 'commons_rate_limited' }), 'commons_rate_limited')
       assert.equal(await reasonOf({ statusReason: 'awaiting_approval' }), 'awaiting_approval')
       assert.equal(await reasonOf({ statusReason: 'app_quit' }), 'app_quit')
       // The app stopped while the job ran: the last reason saved is why it started.
