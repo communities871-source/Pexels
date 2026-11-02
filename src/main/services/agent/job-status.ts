@@ -7,6 +7,7 @@ export type StatusReason =
   | 'user_paused'
   | 'awaiting_approval'
   | 'pexels_quota'
+  | 'commons_rate_limited'
   | 'app_quit'
   | 'restored'
   | 'finished'
@@ -31,6 +32,7 @@ const PAUSE_REASONS: readonly StatusReason[] = [
   'user_paused',
   'awaiting_approval',
   'pexels_quota',
+  'commons_rate_limited',
   'app_quit',
   'restored'
 ]
