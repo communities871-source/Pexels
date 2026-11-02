@@ -203,43 +203,64 @@ export function installFakeNetwork(): FakeNetwork {
     })
   }
 
-  const answerPexels = (url: URL): Response => {
-    const isSearch = url.pathname === '/v1/search' || url.pathname === '/v1/videos/search'
-    if (isSearch && failNextSearchStatus !== null) {
+  const commonsFile = (item: PexelsPhoto | PexelsVideo, type: 'photo' | 'video') => {
+    const title = `File:${type}-${item.id}.${type === 'photo' ? 'jpg' : 'webm'}`
+    const ext = type === 'photo' ? 'jpg' : 'webm'
+    const mime = type === 'photo' ? 'image/jpeg' : 'video/webm'
+    const artist = type === 'photo'
+      ? (item as PexelsPhoto).photographer || 'Wikimedia Commons contributor'
+      : (item as PexelsVideo).user?.name || 'Wikimedia Commons contributor'
+    const duration = type === 'video' ? (item as PexelsVideo).duration || 0 : 0
+    const length = `${Math.floor(duration / 3600)}:${String(Math.floor(duration % 3600 / 60)).padStart(2, '0')}:${String(duration % 60).padStart(2, '0')}`
+    const fileUrl = `https://upload.wikimedia.org/wikipedia/commons/a/a1/${type}-${item.id}.${ext}`
+    return {
+      pageid: item.id,
+      title,
+      imageinfo: [{
+        url: fileUrl,
+        thumburl: type === 'photo'
+          ? `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/640px-${type}-${item.id}.${ext}`
+          : `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/640px-${type}-${item.id}.${ext}.jpg`,
+        width: item.width,
+        height: item.height,
+        mime,
+        extmetadata: {
+          Artist: { value: artist },
+          LicenseShortName: { value: 'CC BY-SA 4.0' },
+          LicenseUrl: { value: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+          ImageDescription: { value: title },
+          Length: { value: length }
+        }
+      }]
+    }
+  }
+
+  const answerCommons = (url: URL): Response => {
+    if (failNextSearchStatus !== null && url.searchParams.has('generator')) {
       const status = failNextSearchStatus
       failNextSearchStatus = null
-      return jsonResponse({ error: 'Rate limit exceeded' }, status, quotaHeaders())
+      return jsonResponse({ error: { info: 'Simulated Commons API failure' } }, status)
     }
 
-    const query = url.searchParams.get('query') || ''
-    if (url.pathname === '/v1/search') {
-      const photos = photoResults.get(query) || []
-      return jsonResponse(
-        { total_results: photos.length, page: 1, per_page: 15, photos },
-        200,
-        quotaHeaders()
-      )
-    }
-    if (url.pathname === '/v1/videos/search') {
-      const videos = videoResults.get(query) || []
-      return jsonResponse(
-        { total_results: videos.length, page: 1, per_page: 10, videos },
-        200,
-        quotaHeaders()
-      )
+    if (url.searchParams.has('generator')) {
+      const rawQuery = url.searchParams.get('gsrsearch') || ''
+      const isVideo = /filetype:video$/i.test(rawQuery)
+      const query = rawQuery.replace(/\\s+filetype:(?:bitmap|video)$/i, '').trim()
+      const found = isVideo ? (videoResults.get(query) || []) : (photoResults.get(query) || [])
+      const pages = found.map((item) => commonsFile(item, isVideo ? 'video' : 'photo'))
+      return jsonResponse({ query: { pages } })
     }
 
-    const photoId = url.pathname.match(/^\/v1\/photos\/(\d+)$/)
-    if (photoId) {
-      const found = [...photoResults.values()].flat().find((p) => p.id === Number(photoId[1]))
-      return found ? jsonResponse(found, 200, quotaHeaders()) : jsonResponse({}, 404)
+    const pageId = Number(url.searchParams.get('pageids'))
+    if (Number.isFinite(pageId) && pageId > 0) {
+      const photo = [...photoResults.values()].flat().find((item) => item.id === pageId)
+      const video = [...videoResults.values()].flat().find((item) => item.id === pageId)
+      const item = photo || video
+      if (!item) return jsonResponse({ query: { pages: [] } }, 200)
+      return jsonResponse({ query: { pages: [commonsFile(item, photo ? 'photo' : 'video')] } })
     }
-    const videoId = url.pathname.match(/^\/v1\/videos\/videos\/(\d+)$/)
-    if (videoId) {
-      const found = [...videoResults.values()].flat().find((v) => v.id === Number(videoId[1]))
-      return found ? jsonResponse(found, 200, quotaHeaders()) : jsonResponse({}, 404)
-    }
-    return problem(`Unexpected network request: ${url.href}`)
+
+    return problem(`Unexpected Wikimedia Commons API request: ${url.href}`)
   }
 
   globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
@@ -256,10 +277,10 @@ export function installFakeNetwork(): FakeNetwork {
     if (url.href === OPENAI_CHAT_URL && method === 'POST') {
       return answerLlm(json as LlmRequestBody)
     }
-    if (url.hostname === 'api.pexels.com' && method === 'GET') {
-      return answerPexels(url)
+    if (url.hostname === 'commons.wikimedia.org' && method === 'GET') {
+      return answerCommons(url)
     }
-    if (url.hostname === 'images.pexels.com' || url.hostname === 'videos.pexels.com') {
+    if (url.hostname === 'upload.wikimedia.org') {
       if (failNextMediaStatus !== null) {
         const status = failNextMediaStatus
         failNextMediaStatus = null
@@ -268,7 +289,7 @@ export function installFakeNetwork(): FakeNetwork {
       return new Response(MEDIA_BODY, {
         status: 200,
         headers: {
-          'content-type': url.hostname === 'images.pexels.com' ? 'image/jpeg' : 'video/mp4',
+          'content-type': /\\.(?:webm|ogv)$/i.test(url.pathname) ? 'video/webm' : 'image/jpeg',
           'content-length': String(MEDIA_BODY.length)
         }
       })
@@ -281,10 +302,10 @@ export function installFakeNetwork(): FakeNetwork {
     problems,
     llmRequests: () =>
       requests.filter((r) => r.url.href === OPENAI_CHAT_URL).map((r) => r.json as LlmRequestBody),
-    pexelsRequests: () => requests.filter((r) => r.url.hostname === 'api.pexels.com'),
+    pexelsRequests: () => requests.filter((r) => r.url.hostname === 'commons.wikimedia.org'),
     mediaRequests: () =>
       requests.filter(
-        (r) => r.url.hostname === 'images.pexels.com' || r.url.hostname === 'videos.pexels.com'
+        (r) => r.url.hostname === 'upload.wikimedia.org'
       ),
     llm,
     pexels,
