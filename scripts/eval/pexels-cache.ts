@@ -48,7 +48,7 @@ export interface PexelsCacheOptions {
 }
 
 export function isPexelsApiRequest(url: URL, method: string): boolean {
-  return url.hostname === 'api.pexels.com' && method === 'GET'
+  return url.hostname === 'commons.wikimedia.org' && method === 'GET'
 }
 
 /** The URL path plus its query parameters in sorted order, so parameter order is irrelevant. */
