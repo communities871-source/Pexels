@@ -102,7 +102,10 @@ export class PexelsClient {
       height: info.height || 0,
       url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
       image: preview,
-      duration: 0,
+      duration: this.parseDuration(info.extmetadata?.Length?.value),
+      commonsLicense: info.extmetadata?.LicenseShortName?.value?.replace(/<[^>]*>/g, '').trim() || 'License not identified',
+      commonsLicenseUrl: info.extmetadata?.LicenseUrl?.value || '',
+      commonsDescription: info.extmetadata?.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || '',
       user: { name: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor', url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}` },
       video_files: [{ link: original, file_type: info.mime || 'video/webm', width: info.width || 0, height: info.height || 0, quality: 'original' }]
     }
@@ -136,6 +139,13 @@ export class PexelsClient {
   public static async getVideo(id: number): Promise<PexelsVideo> {
     const page = await this.getCommonsPage(id)
     return this.videoFromPage(page)
+  }
+
+  private static parseDuration(value?: string): number {
+    if (!value) return 0
+    const parts = value.trim().split(':').map(Number)
+    if (!parts.length || parts.some((part) => !Number.isFinite(part))) return 0
+    return parts.reduce((total, part) => total * 60 + part, 0)
   }
 
   private static async getCommonsPage(id: number): Promise<CommonsPage> {
