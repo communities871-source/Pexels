@@ -91,7 +91,7 @@ function parseCommonsImageUrl(url: string | undefined): URL | undefined {
   try {
     const parsed = new URL(url)
     const plain = !parsed.username && !parsed.password && !parsed.port
-    return parsed.protocol === 'https:' && parsed.hostname === COMMONS_IMAGE_HOST && plain
+    return parsed.protocol === 'https:' && parsed.hostname === COMMONS_IMAGE_HOST && parsed.pathname.startsWith('/wikipedia/commons/') && plain
       ? parsed
       : undefined
   } catch {
