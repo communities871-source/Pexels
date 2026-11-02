@@ -92,7 +92,7 @@ export class PexelsClient {
       height: info.height || 0,
       url: this.filePageUrl(page.title),
       photographer: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor',
-      photographer_url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+      photographer_url: this.filePageUrl(page.title),
       src: { original, large2x: preview, large: preview, medium: preview, small: preview, portrait: preview, landscape: preview, tiny: preview },
       alt: page.title.replace(/^File:/, ''),
       commonsLicense: page.imageinfo?.[0]?.extmetadata?.LicenseShortName?.value?.replace(/<[^>]*>/g, '').trim() || 'License not identified',
@@ -109,13 +109,13 @@ export class PexelsClient {
       id: page.pageid,
       width: info.width || 0,
       height: info.height || 0,
-      url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+      url: this.filePageUrl(page.title),
       image: preview,
       duration: this.parseDuration(info.extmetadata?.Length?.value),
       commonsLicense: info.extmetadata?.LicenseShortName?.value?.replace(/<[^>]*>/g, '').trim() || 'License not identified',
       commonsLicenseUrl: info.extmetadata?.LicenseUrl?.value || '',
       commonsDescription: info.extmetadata?.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || '',
-      user: { name: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor', url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}` },
+      user: { name: page.imageinfo?.[0]?.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '').trim() || 'Wikimedia Commons contributor', url: this.filePageUrl(page.title) },
       video_files: [{ link: original, file_type: info.mime || 'video/webm', width: info.width || 0, height: info.height || 0, quality: 'original' }]
     }
   }
