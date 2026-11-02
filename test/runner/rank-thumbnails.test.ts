@@ -39,7 +39,7 @@ const scriptOf = (count: number): string => sentences(count).join(' ')
 
 /** The preview image of a test clip, sized as the ranking attaches it. */
 const previewOf = (id: number): string =>
-  `https://images.pexels.com/videos/${id}/pictures/preview-0.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280`
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/video-${id}.webm/640px-video-${id}.webm.jpg`
 
 /** The candidate keys a ranking request states its thumbnails for, in the order stated. */
 const thumbnailKeys = (request: LlmRequestBody): string[] =>
