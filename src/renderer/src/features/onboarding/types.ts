@@ -13,4 +13,4 @@ export interface ProviderKeys {
   openrouter: string
 }
 
-export const WIZARD_STEPS = ['welcome', 'ai', 'pexels', 'storage', 'finish'] as const
+export const WIZARD_STEPS = ['welcome', 'ai', 'commons', 'storage', 'finish'] as const
