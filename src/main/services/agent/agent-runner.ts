@@ -1670,12 +1670,12 @@ export class AgentRunner extends EventEmitter {
     try {
       return await search()
     } catch (error) {
-      if (this.pexelsQuotaRanOut(error)) {
+      if (this.commonsRateLimited(error)) {
         this.log(
           'error',
           `Wikimedia Commons search failed: ${error instanceof Error ? error.message : String(error)}`
         )
-        this.pauseIfPexelsQuotaExhausted(error)
+        this.pauseIfCommonsRateLimited(error)
       }
       throw error
     }
@@ -1761,7 +1761,7 @@ export class AgentRunner extends EventEmitter {
 
   /**
    * Searches Pexels for the job. A search with no shape asked for gets the shape of the platform.
-   * The error of a call that ran out of quota goes to `pauseIfPexelsQuotaExhausted`.
+   * The error of a call that ran out of quota goes to `pauseIfCommonsRateLimited`.
    */
   private searchPexels(
     type: 'photo',
@@ -2307,7 +2307,7 @@ export class AgentRunner extends EventEmitter {
         this.log('error', `Tool execution ${tc.name} failed: ${failure.message}`)
       }
       result = failure.result
-      this.pauseIfPexelsQuotaExhausted(error)
+      this.pauseIfCommonsRateLimited(error)
       if (!failure.interrupted && isUnrecoverablePexelsError(error)) unrecoverable = error
     }
 
@@ -2323,34 +2323,33 @@ export class AgentRunner extends EventEmitter {
   }
 
   /**
-   * An error from a Pexels call that says the quota is used up pauses the job. True when it did.
+   * An HTTP 429 from Wikimedia Commons pauses the job. True when it did.
    * The caller logs the error first, so the log reads as the failure and then the pause.
    */
-  private pauseIfPexelsQuotaExhausted(error: unknown): boolean {
-    if (!this.pexelsQuotaRanOut(error)) return false
-    this.pauseForPexelsQuota()
+  private pauseIfCommonsRateLimited(error: unknown): boolean {
+    if (!this.commonsRateLimited(error)) return false
+    this.pauseForCommonsRateLimit()
     return true
   }
 
-  /** Whether a Pexels call failed because the quota is used up, in a run that is still going. */
-  private pexelsQuotaRanOut(error: unknown): boolean {
+  /** Whether Wikimedia Commons rate-limited this request while the job is still running. */
+  private commonsRateLimited(error: unknown): boolean {
     return (
       error instanceof ApiError &&
       error.statusCode === 429 &&
-      PexelsClient.isQuotaExhausted() &&
+      
       this.status === 'running'
     )
   }
 
-  /** docs/04: on an exhausted quota, stop new Pexels calls for this job and say why. */
-  private pauseForPexelsQuota(): void {
-    const resetNote = ''
-    this.setStatus('paused', 'pexels_quota')
+  /** On a Commons rate limit, stop new API calls for this job and say why. */
+  private pauseForCommonsRateLimit(): void {
+    this.setStatus('paused', 'commons_rate_limited')
     this.log(
       'error',
-      `Wikimedia Commons API is temporarily unavailable, so the job was paused.${resetNote} Please try resuming the job later.`
+      'Wikimedia Commons rate-limited the search. The job was paused; please try resuming it later.'
     )
-    this.updateProgress('Paused — Commons API unavailable', this.progress)
+    this.updateProgress('Paused — Commons rate limit', this.progress)
     this.abortController?.abort()
   }
 
