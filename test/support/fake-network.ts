@@ -236,7 +236,7 @@ export function installFakeNetwork(): FakeNetwork {
           Artist: { value: artist },
           LicenseShortName: { value: 'CC BY-SA 4.0' },
           LicenseUrl: { value: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-          ImageDescription: { value: title },
+          ImageDescription: { value: item.commonsDescription || title },
           Length: { value: length }
         }
       }]
