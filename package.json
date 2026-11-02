@@ -9,7 +9,7 @@
   "homepage": "https://stockfinderai.birol.tech",
   "repository": {
     "type": "git",
-    "url": "https://github.com/birol-dev/Pexels.git"
+    "url": "https://github.com/communities871-source/Pexels.git"
   },
   "scripts": {
     "format": "prettier --write .",
