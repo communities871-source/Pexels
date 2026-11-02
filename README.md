@@ -2,9 +2,9 @@
 
 **Website:** [https://stockfinderai.birol.tech](https://stockfinderai.birol.tech) | **Developer:** [https://birol.tech](https://birol.tech)
 
-**Paste your script. Get a curated Pexels b-roll pack on your desktop — organized, downloaded, and ready for your editor.**
+**Paste your script. Get a curated Wikimedia Commons b-roll pack on your desktop — organized, downloaded, and ready for your editor.**
 
-StockFinder AI is a free, open-source desktop app for YouTube creators, short-form editors, and video producers who are tired of tab-hopping through stock sites. It reads your video script, splits it into visual beats, searches [Pexels](https://www.pexels.com) with AI-driven keywords, and downloads matching stock photos and videos to a local folder — so you spend less time hunting footage and more time cutting.
+StockFinder AI is a free, open-source desktop app for YouTube creators, short-form editors, and video producers who are tired of tab-hopping through stock sites. It reads your video script, splits it into visual beats, searches [Wikimedia Commons](https://commons.wikimedia.org) with AI-driven keywords, and downloads matching stock photos and videos to a local folder — so you spend less time hunting footage and more time cutting.
 
 [![Website](https://img.shields.io/badge/website-stockfinderai.birol.tech-05df72)](https://stockfinderai.birol.tech)
 [![Developer](https://img.shields.io/badge/developer-birol.tech-purple)](https://birol.tech)
@@ -16,7 +16,7 @@ StockFinder AI is a free, open-source desktop app for YouTube creators, short-fo
 
 ## Why creators use StockFinder AI
 
-Most editing time disappears into stock footage searches — not the edit itself. You write the script, then lose an hour opening Pexels, typing slightly wrong keywords, and downloading clips one by one.
+Most editing time disappears into stock footage searches — not the edit itself. You write the script, then lose an hour searching stock libraries, typing slightly wrong keywords, and downloading clips one by one.
 
 StockFinder AI automates that loop:
 
@@ -25,17 +25,17 @@ StockFinder AI automates that loop:
 | Manual keyword guessing per scene | AI breaks your script into visual beats |
 | Dozens of browser tabs            | One agent run, one organized folder     |
 | Clips scattered across Downloads  | Assets named, grouped, and export-ready |
-| Easy to miss Pexels attribution   | Built-in credits and manifest export    |
+| Per-file creator and license details in the manifest   | Built-in credits and manifest export    |
 
 ---
 
 ## How it works
 
 1. **Paste your script** — Drop in your YouTube voiceover, narration, or scene list.
-2. **Let the agent run** — StockFinder AI parses beats, searches Pexels photos and videos, and queues downloads (with optional approval before each batch).
+2. **Let the agent run** — StockFinder AI parses beats, searches Wikimedia Commons photos and videos, and queues downloads (with optional approval before each batch).
 3. **Open your asset pack** — Clips land in a local project folder with a media library, attribution info, and an exportable manifest for your workflow.
 
-Works with **OpenAI**, **Google Gemini**, or **OpenRouter** for the AI layer, plus a free **Pexels API key** for stock media.
+Works with **OpenAI**, **Google Gemini**, or **OpenRouter** for the AI layer, plus free, keyless media search through **Wikimedia Commons**.
 
 ---
 
@@ -43,15 +43,15 @@ Works with **OpenAI**, **Google Gemini**, or **OpenRouter** for the AI layer, pl
 
 ### Script-to-stock automation
 
-Turns long-form scripts into scene-by-scene visual directions and Pexels search queries — no manual beat mapping.
+Turns long-form scripts into scene-by-scene visual directions and Wikimedia Commons search queries — no manual beat mapping.
 
-### AI-powered Pexels search
+### AI-powered Wikimedia Commons search
 
-Finds relevant stock b-roll videos and photos per beat, with caching and rate-limit handling so agent runs stay efficient.
+Finds relevant stock b-roll videos and photos per beat, with caching so agent runs stay efficient.
 
 ### Local asset library
 
-Browse, filter, and inspect everything the agent downloaded. Export a manifest with photographer credits for Pexels compliance.
+Browse, filter, and inspect everything the agent downloaded. Export a manifest with available creator and per-file license information.
 
 ### Human-in-the-loop controls
 
@@ -115,9 +115,10 @@ sha256sum --check --ignore-missing SHA256SUMS
 
 ### What you need before your first run
 
-1. A [Pexels API key](https://www.pexels.com/api/) (free)
-2. An API key from **OpenAI**, **Gemini**, or **OpenRouter**
-3. A folder on your machine for downloaded assets
+1. An API key from **OpenAI**, **Gemini**, or **OpenRouter**
+2. A folder on your machine for downloaded assets
+
+Wikimedia Commons search does not require a media API key.
 
 The in-app onboarding wizard walks you through setup.
 
@@ -127,7 +128,7 @@ The in-app onboarding wizard walks you through setup.
 
 The app checks GitHub Releases for updates every six hours. You can turn this off in Settings.
 
-The Skip explicit content and Avoid people & faces settings are best effort, because they read the words Pexels gives each result (a photo's alt text, a video's page title) and not the picture; Pexels' terms ban uploading sexually explicit material and its license says identifiable people must not appear in a bad light or in a way that is offensive, so review the footage you keep.
+The Skip explicit content and Avoid people & faces settings are best effort, because they read the metadata Commons provides for each result (file title, description, and creator) and not the picture; Pexels' terms ban uploading sexually explicit material and its license says identifiable people must not appear in a bad light or in a way that is offensive, so review the footage you keep.
 
 ---
 
@@ -179,14 +180,14 @@ npm run build:linux  # Linux package
 - **Desktop**: [Electron](https://www.electronjs.org/) + [electron-vite](https://electron-vite.org/)
 - **UI**: React 19, Tailwind CSS 4, Zustand
 - **AI**: OpenAI / Gemini / OpenRouter with tool-calling agent loop
-- **Stock media**: [Pexels API v1](https://www.pexels.com/api/documentation/)
+- **Stock media**: [Wikimedia Commons MediaWiki API](https://commons.wikimedia.org/w/api.php)
 - **Language**: TypeScript throughout
 
 ---
 
 ## Keywords
 
-StockFinder AI helps with: AI stock footage search, Pexels video downloader, YouTube b-roll finder, script to stock assets, free stock video for editing, AI video asset pack, desktop stock media tool, automated b-roll workflow, Pexels attribution export, open-source video production tool.
+StockFinder AI helps with: AI stock footage search, Wikimedia Commons video downloader, YouTube b-roll finder, script to stock assets, free stock video for editing, AI video asset pack, desktop stock media tool, automated b-roll workflow, Commons attribution and license manifest, open-source video production tool.
 
 ---
 
