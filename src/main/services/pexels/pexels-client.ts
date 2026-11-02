@@ -32,7 +32,7 @@ type CommonsResponse = {
 
 export class PexelsClient {
   public static resetCircuit(): void { commonsCircuit.reset() }
-  public static resetQuota(): void {}
+  public static resetQuota(): void { commonsCircuit.reset() }
   public static isQuotaExhausted(): boolean { return false }
   public static isQuotaLow(): boolean { return false }
   public static getQuotaSnapshot(): null { return null }
