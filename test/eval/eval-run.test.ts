@@ -161,7 +161,7 @@ describe('eval: a dry run on the fake network', () => {
     assert.equal(sheet.match(/<article class="beat"/g)?.length, 2)
     assert.match(sheet, /<p class="text">One sentence\.<\/p>/)
     for (const asset of assets) {
-      assert.match(asset.thumbnailUrl, /^https:\/\/images\.pexels\.com\//)
+      assert.match(asset.thumbnailUrl, /^https:\/\/upload\.wikimedia\.org\//)
       assert.ok(sheet.includes(`<img src="${escapeHtml(asset.thumbnailUrl)}"`), asset.id)
     }
     assert.doesNotMatch(sheet, /<script[^>]*\ssrc=/)
@@ -202,11 +202,7 @@ describe('eval: a dry run on the fake network', () => {
       pexelsReplayed: 2,
       mediaRequests: 2
     })
-    // The quota in the manifest can only have come from the replayed headers.
-    const quota = report.pexelsQuota as { limit: number; remaining: number; resetAt: number }
-    assert.equal(quota.limit, network.pexels.quota.limit)
-    assert.equal(quota.remaining, network.pexels.quota.remaining)
-    assert.equal(quota.resetAt, network.pexels.quota.resetAt)
+    assert.equal(report.pexelsQuota, null, 'Wikimedia Commons does not expose Pexels quota headers')
   })
 
   it('skips the media downloads when asked to', async () => {

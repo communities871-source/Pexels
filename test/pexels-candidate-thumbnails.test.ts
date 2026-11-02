@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
-  VIDEO_THUMBNAIL_QUERY,
   thumbnailUrlOf,
   type PexelsCandidate
 } from '../src/main/services/pexels/candidates.ts'
@@ -17,10 +16,10 @@ function withVariants(
 
 describe('thumbnailUrlOf', () => {
   describe('for a photo', () => {
-    it('is the "tiny" size Pexels gives (280 by 200)', () => {
+    it('uses the Commons-generated thumbnail URL', () => {
       assert.equal(
-        thumbnailUrlOf(photoCand(8, 'Sea foam')),
-        'https://images.pexels.com/photos/8/pexels-photo-8.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
+        thumbnailUrlOf(withVariants(photoCand(8, 'Sea foam'), [{ label: 'tiny', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/example.jpg/280px-example.jpg' }])),
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/example.jpg/280px-example.jpg'
       )
     })
 
@@ -34,7 +33,7 @@ describe('thumbnailUrlOf', () => {
       assert.equal(thumbnailUrlOf(withVariants(candidate, [])), undefined)
     })
 
-    it('is nothing when the "tiny" size is not an image on images.pexels.com', () => {
+    it('is nothing when the "tiny" size is not an image on upload.wikimedia.org', () => {
       const candidate = photoCand(8, 'Sea foam')
       const elsewhere = (url: string): PexelsCandidate =>
         withVariants(candidate, [{ label: 'tiny', url }])
@@ -52,25 +51,24 @@ describe('thumbnailUrlOf', () => {
   describe('for a video', () => {
     it('is its preview image sized to 280 by 200', () => {
       assert.equal(
-        thumbnailUrlOf(videoCand(7, 'waves-on-a-beach')),
-        'https://images.pexels.com/videos/7/pictures/preview-0.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
+        thumbnailUrlOf({ ...videoCand(7, 'waves-on-a-beach'), imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/280px--example.ogv.jpg' }),
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/280px--example.ogv.jpg'
       )
-      assert.equal(VIDEO_THUMBNAIL_QUERY, 'auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280')
     })
 
-    it('replaces the sizing Pexels put on the preview image and keeps nothing of it', () => {
+    it('preserves Commons preview query parameters and removes the fragment', () => {
       const candidate: PexelsCandidate = {
         ...videoCand(7, 'waves-on-a-beach'),
         imageUrl:
-          'https://images.pexels.com/videos/3571264/free-video-3571264.jpg?fit=crop&w=1200&h=630&auto=compress&cs=tinysrgb#frag'
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/1200px--example.ogv.jpg?width=1200#frag'
       }
       assert.equal(
         thumbnailUrlOf(candidate),
-        'https://images.pexels.com/videos/3571264/free-video-3571264.jpg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/example.ogv/1200px--example.ogv.jpg?width=1200'
       )
     })
 
-    it('is nothing when the preview image is missing or is not an image on images.pexels.com', () => {
+    it('is nothing when the preview image is missing or not on the Commons image host', () => {
       const preview = (imageUrl: string): PexelsCandidate => ({
         ...videoCand(7, 'waves-on-a-beach'),
         imageUrl
@@ -78,7 +76,7 @@ describe('thumbnailUrlOf', () => {
       assert.equal(thumbnailUrlOf(preview('')), undefined)
       assert.equal(thumbnailUrlOf(preview('https://example.com/preview.jpeg')), undefined)
       assert.equal(thumbnailUrlOf(preview('http://images.pexels.com/preview.jpeg')), undefined)
-      assert.equal(thumbnailUrlOf(preview('https://videos.pexels.com/preview.jpeg')), undefined)
+      assert.equal(thumbnailUrlOf(preview('https://upload.wikimedia.org/preview.jpeg')), undefined)
       assert.equal(
         thumbnailUrlOf(preview('https://images.pexels.com.evil.test/preview.jpeg')),
         undefined

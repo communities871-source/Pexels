@@ -37,7 +37,7 @@ export const SUBMIT_BEAT_PLAN_TOOL: NormalizedToolDefinition = {
             queries: {
               type: 'array',
               items: { type: 'string' },
-              description: '2 or 3 Pexels queries of 1 to 4 words, most specific first.'
+              description: '2 or 3 Wikimedia Commons search queries of 1 to 4 words, most specific first.'
             },
             assetType: {
               type: 'string',
@@ -209,7 +209,7 @@ export function buildBeatSplitSystemPrompt(input: BeatSplitPromptInput): string 
 Rules:
 1. Group consecutive sentences into beats. A beat changes when the picture should change: about 8 to 15 spoken words, or 3 to 6 seconds. The last beat ends at the last sentence.
 2. Use at most ${input.maxTotalDownloads} beats.
-3. For each beat, write a visual prompt, 2 or 3 Pexels queries (1 to 4 words, English, filmable, no brands or named people), and whether it needs video, a photo, or either. For abstract narration such as "freedom" or "growth", pick a literal image a stock library would have, such as an open road or a seedling in sunlight.
+3. For each beat, write a visual prompt, 2 or 3 Wikimedia Commons search queries (1 to 4 words, English, filmable, no brands or named people), and whether it needs video, a photo, or either. For abstract narration such as "freedom" or "growth", pick a literal image a stock library would have, such as an open road or a seedling in sunlight.
 
 Visual style: ${visualStyleLine(input.style)}${conceptLine}
 Write visual prompts and queries that fit this look.${peopleLine}

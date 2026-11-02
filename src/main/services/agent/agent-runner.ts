@@ -157,6 +157,10 @@ export interface AssetRecord {
   duration?: number
   photographer: string
   photographerUrl?: string
+  sourceUrl?: string
+  license?: string
+  licenseUrl?: string
+  description?: string
   query: string
   filePath?: string
   status: 'pending' | 'downloading' | 'completed' | 'failed'
@@ -1130,6 +1134,10 @@ export class AgentRunner extends EventEmitter {
       url: string
       photographer: string
       photographerUrl?: string
+      sourceUrl?: string
+      license?: string
+      licenseUrl?: string
+      description?: string
     }> = []
 
     for (const b of this.beats) {
@@ -1144,9 +1152,13 @@ export class AgentRunner extends EventEmitter {
             id: a.id,
             type: a.type,
             pexelsId: a.pexelsId,
-            url: a.url,
+            url: a.sourceUrl || a.photographerUrl || a.url,
             photographer: a.photographer,
-            photographerUrl: a.photographerUrl
+            photographerUrl: a.photographerUrl,
+            sourceUrl: a.sourceUrl,
+            license: a.license,
+            licenseUrl: a.licenseUrl,
+            description: a.description
           })
         }
       }
@@ -1653,17 +1665,17 @@ export class AgentRunner extends EventEmitter {
     }))
   }
 
-  /** A Pexels search for the pipeline. One that runs the quota out pauses the job, as in the loop. */
+  /** A Commons search for the pipeline. A rate-limited request pauses the job, as in the loop. */
   private async pipelineSearch<T>(search: () => Promise<T>): Promise<T> {
     try {
       return await search()
     } catch (error) {
-      if (this.pexelsQuotaRanOut(error)) {
+      if (this.commonsRateLimited(error)) {
         this.log(
           'error',
-          `Pexels search failed: ${error instanceof Error ? error.message : String(error)}`
+          `Wikimedia Commons search failed: ${error instanceof Error ? error.message : String(error)}`
         )
-        this.pauseIfPexelsQuotaExhausted(error)
+        this.pauseIfCommonsRateLimited(error)
       }
       throw error
     }
@@ -1749,7 +1761,7 @@ export class AgentRunner extends EventEmitter {
 
   /**
    * Searches Pexels for the job. A search with no shape asked for gets the shape of the platform.
-   * The error of a call that ran out of quota goes to `pauseIfPexelsQuotaExhausted`.
+   * A rate-limited Commons search is paused by `pauseIfCommonsRateLimited`.
    */
   private searchPexels(
     type: 'photo',
@@ -1817,6 +1829,10 @@ export class AgentRunner extends EventEmitter {
       duration: candidate.duration,
       photographer: candidate.photographer,
       photographerUrl: candidate.photographerUrl,
+      sourceUrl: candidate.sourceUrl,
+      license: candidate.license,
+      licenseUrl: candidate.licenseUrl,
+      description: candidate.description,
       query: candidate.query,
       status: 'pending'
     }
@@ -1893,16 +1909,7 @@ export class AgentRunner extends EventEmitter {
   }
 
   private logPexelsQuotaIfNeeded(): void {
-    const quota = PexelsClient.getQuotaSnapshot()
-    if (!quota) return
-
-    if (PexelsClient.isQuotaLow()) {
-      const resetDate = new Date(quota.resetAt * 1000).toLocaleString()
-      this.log(
-        'info',
-        `Pexels API quota low: ${quota.remaining}/${quota.limit} requests remaining (resets ${resetDate}).`
-      )
-    }
+    // Wikimedia Commons does not use per-user API keys or Pexels quota headers.
   }
 
   private async executeToolCall(tc: NormalizedToolCall): Promise<void> {
@@ -1937,7 +1944,7 @@ export class AgentRunner extends EventEmitter {
             beat.searchQueries.push(args.query)
           }
         }
-        this.log('info', `[${args.beatId}] Querying Pexels Photos API for "${args.query}"...`)
+        this.log('info', `[${args.beatId}] Searching Wikimedia Commons photos for "${args.query}"...`)
         this.updateProgress(
           `Searching photos for "${args.query}" (${args.beatId.replace('_', ' ')})`,
           this.loopProgress()
@@ -1984,7 +1991,7 @@ export class AgentRunner extends EventEmitter {
             beat.searchQueries.push(args.query)
           }
         }
-        this.log('info', `[${args.beatId}] Querying Pexels Videos API for "${args.query}"...`)
+        this.log('info', `[${args.beatId}] Searching Wikimedia Commons videos for "${args.query}"...`)
         this.updateProgress(
           `Searching videos for "${args.query}" (${args.beatId.replace('_', ' ')})`,
           this.loopProgress()
@@ -2046,7 +2053,7 @@ export class AgentRunner extends EventEmitter {
             selectionResults.push({
               pexelsId: sel.pexelsId,
               status: 'rejected',
-              reason: `Security Check Failed: Asset ${sel.pexelsId} (${sel.assetType}) was not found in Pexels search results of this job.`
+              reason: `Security Check Failed: Asset ${sel.pexelsId} (${sel.assetType}) was not found in Wikimedia Commons search results of this job.`
             })
             continue
           }
@@ -2060,7 +2067,7 @@ export class AgentRunner extends EventEmitter {
               pexelsId: sel.pexelsId,
               status: 'rejected',
               reason: sel.variantUrl
-                ? `Security Check Failed: URL for asset ${sel.pexelsId} is not a valid Pexels download variant from this job.`
+                ? `Security Check Failed: URL for asset ${sel.pexelsId} is not a valid Wikimedia Commons download variant from this job.`
                 : `No downloadable file found for asset ${sel.pexelsId}.`
             })
             continue
@@ -2300,7 +2307,7 @@ export class AgentRunner extends EventEmitter {
         this.log('error', `Tool execution ${tc.name} failed: ${failure.message}`)
       }
       result = failure.result
-      this.pauseIfPexelsQuotaExhausted(error)
+      this.pauseIfCommonsRateLimited(error)
       if (!failure.interrupted && isUnrecoverablePexelsError(error)) unrecoverable = error
     }
 
@@ -2311,40 +2318,37 @@ export class AgentRunner extends EventEmitter {
       name: tc.name,
       content: JSON.stringify(result)
     })
-    // The model cannot fix a key Pexels refuses, so the run ends here with the real cause.
+    // The model cannot fix a provider authentication error, so the run ends here with the real cause.
     if (unrecoverable) throw unrecoverable
   }
 
   /**
-   * An error from a Pexels call that says the quota is used up pauses the job. True when it did.
+   * An HTTP 429 from Wikimedia Commons pauses the job. True when it did.
    * The caller logs the error first, so the log reads as the failure and then the pause.
    */
-  private pauseIfPexelsQuotaExhausted(error: unknown): boolean {
-    if (!this.pexelsQuotaRanOut(error)) return false
-    this.pauseForPexelsQuota()
+  private pauseIfCommonsRateLimited(error: unknown): boolean {
+    if (!this.commonsRateLimited(error)) return false
+    this.pauseForCommonsRateLimit()
     return true
   }
 
-  /** Whether a Pexels call failed because the quota is used up, in a run that is still going. */
-  private pexelsQuotaRanOut(error: unknown): boolean {
+  /** Whether Wikimedia Commons rate-limited this request while the job is still running. */
+  private commonsRateLimited(error: unknown): boolean {
     return (
       error instanceof ApiError &&
       error.statusCode === 429 &&
-      PexelsClient.isQuotaExhausted() &&
       this.status === 'running'
     )
   }
 
-  /** docs/04: on an exhausted quota, stop new Pexels calls for this job and say why. */
-  private pauseForPexelsQuota(): void {
-    const quota = PexelsClient.getQuotaSnapshot()
-    const resetNote = quota ? ` It resets ${new Date(quota.resetAt * 1000).toLocaleString()}.` : ''
-    this.setStatus('paused', 'pexels_quota')
+  /** On a Commons rate limit, stop new API calls for this job and say why. */
+  private pauseForCommonsRateLimit(): void {
+    this.setStatus('paused', 'commons_rate_limited')
     this.log(
       'error',
-      `Pexels API quota is exhausted, so the job was paused.${resetNote} Resume after the reset, or add a different Pexels key in Settings.`
+      'Wikimedia Commons rate-limited the search. The job was paused; please try resuming it later.'
     )
-    this.updateProgress('Paused — Pexels quota exhausted', this.progress)
+    this.updateProgress('Paused — Commons rate limit', this.progress)
     this.abortController?.abort()
   }
 
@@ -2577,7 +2581,7 @@ export class AgentRunner extends EventEmitter {
           this.log('info', `Successfully refreshed video URL: ${freshUrl}`)
           return freshUrl
         }
-        throw new Error('No matching video files found in Pexels details')
+        throw new Error('No matching video files found in Wikimedia Commons file details')
       }
     } catch (err) {
       this.log(

@@ -132,7 +132,7 @@ describe('runner: the pipeline engine', () => {
         pexelsQueries(network).sort(),
         Array.from({ length: 8 }, (_, i) => queryOfBeat(i + 1)).sort()
       )
-      assert.ok(network.pexelsRequests().every((r) => r.url.pathname === '/v1/videos/search'))
+      assert.ok(network.pexelsRequests().every((r) => r.url.pathname === '/w/api.php' && /filetype:video$/i.test(r.url.searchParams.get('gsrsearch') || '')))
       assert.equal(network.mediaRequests().length, 8)
 
       // Each beat got the clip the model ranked first, and it is on disk.
@@ -406,47 +406,25 @@ describe('runner: the pipeline engine', () => {
     })
   })
 
-  describe('the Pexels quota runs out during the searches', () => {
-    it('pauses with the quota as the reason, and searches only the beats left on resume', async () => {
+  describe('Wikimedia Commons transient search failures', () => {
+    it('retries a transient response and continues the pipeline', async () => {
       footageForBeats(network, 3)
       network.llm.tools([submitBeats(sentences(3))]).dynamic(rankLastFirst())
-      network.pexels.quota = {
-        limit: 20000,
-        remaining: 0,
-        resetAt: Math.floor(Date.now() / 1000) + 5 * 24 * 60 * 60
-      }
       network.pexels.failNextSearch(429)
 
-      const run = await runJob({ script: scriptOf(3) }, PIPELINE, { deadlineMs: 4000 })
-
-      assert.equal(run.snapshot.status, 'paused')
-      assert.equal(run.snapshot.statusReason, 'pexels_quota')
-      assert.equal(run.summary.status, 'paused')
-      const logged = run.snapshot.logs.map((entry) => entry.message).join('\n')
-      assert.match(logged, /Pexels API quota is exhausted/)
-      assert.match(logged, /It resets /)
-      assert.equal(network.llmRequests().length, 1, 'nothing was ranked')
-      const sent = network.pexelsRequests().length
-      assert.ok(sent <= 3)
-
-      // The beats searched before the stop are saved with their candidates.
-      const searched = Object.keys((await savedFilesOf(run.jobId)).state?.candidatesByBeat ?? {})
-      assert.ok(searched.length < 3, 'the failed search is not recorded as done')
-
-      // The quota is back. Only the beats without candidates are searched.
-      PexelsClient.resetQuota()
-      network.pexels.quota.remaining = 19000
-      await withDeadline(run.runner, run.runner.resume())
+      const run = await runJob({ script: scriptOf(3) }, PIPELINE)
 
       assert.deepEqual(network.problems, [])
-      assert.equal(run.runner.getSnapshot().status, 'completed')
-      assert.equal(network.pexelsRequests().length, sent + (3 - searched.length))
+      assert.equal(run.snapshot.status, 'completed')
+      assert.equal(run.summary.status, 'completed')
+      assert.equal(network.llmRequests().length, 2, 'the plan and ranking both complete')
       assert.equal(network.mediaRequests().length, 3)
+      assert.ok(network.pexelsRequests().length >= 4, 'the transient failure was retried')
     })
   })
 
-  describe('Pexels refuses the key during the searches', () => {
-    it('fails the job with the Pexels error, without a broader round or a ranking call', async () => {
+  describe('Wikimedia Commons refuses a search request', () => {
+    it('fails the job with the Commons error, without a broader round or a ranking call', async () => {
       network.llm.tools([submitBeats(sentences(1))])
       network.pexels.failNextSearch(401)
 
@@ -457,8 +435,8 @@ describe('runner: the pipeline engine', () => {
       assert.equal(run.snapshot.statusReason, 'error')
       const errors = run.snapshot.logs.filter((entry) => entry.type === 'error')
       assert.ok(
-        errors.some((entry) => /Pexels.*HTTP 401/.test(entry.message)),
-        'the log names Pexels and the status'
+        errors.some((entry) => /Wikimedia Commons.*HTTP 401/.test(entry.message)),
+        'the log names Commons and the status'
       )
       assert.ok(
         !errors.some((entry) => /tool calling/.test(entry.message)),
@@ -541,7 +519,7 @@ describe('runner: the pipeline engine', () => {
       footageForBeats(network, 2)
       network.llm.tools([submitBeats(sentences(2))]).dynamic(rankLastFirst())
       // The file of beat 1's first pick is gone from Pexels.
-      const gone = `https://videos.pexels.com/video-files/${pickOf(1).split('_')[1]}/`
+      const gone = `https://upload.wikimedia.org/wikipedia/commons/a/a1/video-${pickOf(1).split('_')[1]}.webm`
       const inner = globalThis.fetch
       globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
         const url = String(input instanceof Request ? input.url : input)

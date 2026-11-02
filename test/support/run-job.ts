@@ -166,8 +166,12 @@ export function searchVideos(beatId: string, query: string): ToolCallSpec {
   return { name: 'search_pexels_videos', args: { beatId, query } }
 }
 
-export function searchPhotos(beatId: string, query: string): ToolCallSpec {
-  return { name: 'search_pexels_photos', args: { beatId, query } }
+export function searchPhotos(
+  beatId: string,
+  query: string,
+  orientation?: 'landscape' | 'portrait' | 'square'
+): ToolCallSpec {
+  return { name: 'search_pexels_photos', args: { beatId, query, ...(orientation ? { orientation } : {}) } }
 }
 
 /** `variantUrl` is optional, as it is for the model: without it the app picks the file. */

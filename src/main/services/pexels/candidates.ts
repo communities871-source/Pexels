@@ -9,12 +9,16 @@ export interface PexelsCandidate {
   type: 'photo' | 'video'
   photographer: string
   photographerUrl?: string
+  sourceUrl: string
+  license?: string
+  licenseUrl?: string
+  description?: string
   width: number
   height: number
   imageUrl: string
   duration?: number
   query: string
-  /** What Pexels says the result shows: a photo's alt text, or the slug of its page. Only the pipeline keeps it. */
+  /** What the source metadata says the result shows: a photo's alt text, or the slug of its page. Only the pipeline keeps it. */
   about?: string
   variants: Array<{
     label?: string
@@ -37,6 +41,10 @@ export function photoCandidate(photo: PexelsPhoto, query: string): PexelsCandida
     type: 'photo',
     photographer: photo.photographer || 'Unknown Photographer',
     photographerUrl: photo.photographer_url || undefined,
+    sourceUrl: photo.url,
+    license: photo.commonsLicense,
+    licenseUrl: photo.commonsLicenseUrl,
+    description: photo.commonsDescription,
     width: photo.width,
     height: photo.height,
     imageUrl: photo.src.medium || photo.src.original,
@@ -55,6 +63,10 @@ export function videoCandidate(video: PexelsVideo, query: string): PexelsCandida
     type: 'video',
     photographer: video.user?.name || 'Unknown Creator',
     photographerUrl: video.user?.url || undefined,
+    sourceUrl: video.url,
+    license: video.commonsLicense,
+    licenseUrl: video.commonsLicenseUrl,
+    description: video.commonsDescription,
     width: video.width,
     height: video.height,
     imageUrl: video.image || '',
@@ -70,23 +82,16 @@ export function videoCandidate(video: PexelsVideo, query: string): PexelsCandida
   }
 }
 
-/** The host Pexels serves its photos and video previews from. */
-const PEXELS_IMAGE_HOST = 'images.pexels.com'
+/** Wikimedia Commons serves file previews from upload.wikimedia.org. */
+const COMMONS_IMAGE_HOST = 'upload.wikimedia.org'
 
-/**
- * Sizes a video's preview image like a photo's "tiny" size: 280 by 200, cropped. This is the
- * query Pexels itself uses for `tiny`. Whether the image CDN honours it for video previews is
- * not confirmed; a preview it serves at another size still works as a thumbnail.
- */
-export const VIDEO_THUMBNAIL_QUERY = 'auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280'
-
-/** An https URL on the Pexels image host, without credentials or a port. */
-function parsePexelsImageUrl(url: string | undefined): URL | undefined {
+/** An https URL on the Wikimedia Commons image host, without credentials or a port. */
+function parseCommonsImageUrl(url: string | undefined): URL | undefined {
   if (!url) return undefined
   try {
     const parsed = new URL(url)
     const plain = !parsed.username && !parsed.password && !parsed.port
-    return parsed.protocol === 'https:' && parsed.hostname === PEXELS_IMAGE_HOST && plain
+    return parsed.protocol === 'https:' && parsed.hostname === COMMONS_IMAGE_HOST && parsed.pathname.startsWith('/wikipedia/commons/') && plain
       ? parsed
       : undefined
   } catch {
@@ -96,17 +101,16 @@ function parsePexelsImageUrl(url: string | undefined): URL | undefined {
 
 /**
  * A small image to show a model in place of the clip: a photo's `tiny` size, or a video's preview
- * image sized to match. Only a URL on images.pexels.com qualifies; a candidate with none (a record
+ * image sized to match. Only a URL on upload.wikimedia.org qualifies; a candidate with none (a record
  * from an older build may lack the `tiny` size) has no thumbnail and is judged by its description.
  */
 export function thumbnailUrlOf(candidate: PexelsCandidate): string | undefined {
   if (candidate.type === 'photo') {
     const tiny = candidate.variants.find((variant) => variant.label === 'tiny')
-    return parsePexelsImageUrl(tiny?.url)?.href
+    return parseCommonsImageUrl(tiny?.url)?.href
   }
-  const preview = parsePexelsImageUrl(candidate.imageUrl)
+  const preview = parseCommonsImageUrl(candidate.imageUrl)
   if (!preview) return undefined
-  preview.search = VIDEO_THUMBNAIL_QUERY
   preview.hash = ''
   return preview.href
 }

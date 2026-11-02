@@ -1,7 +1,7 @@
 import type { PublicSettings } from '@renderer/lib/store'
 import { DEFAULT_MODEL_IDS } from '../../../../shared/llm-defaults'
 
-export type SecretKeyField = 'openaiKey' | 'geminiKey' | 'openrouterKey' | 'pexelsKey'
+export type SecretKeyField = 'openaiKey' | 'geminiKey' | 'openrouterKey'
 export type LlmProvider = PublicSettings['llmProvider']
 export type SettingsPatch = Partial<PublicSettings>
 export type SecretKeys = Record<SecretKeyField, string>
@@ -11,21 +11,19 @@ export interface TestResultState {
   message: string
 }
 
-export const GITHUB_REPO_URL = 'https://github.com/birol-dev/Pexels'
+export const GITHUB_REPO_URL = 'https://github.com/communities871-source/Pexels'
 export const PERSIST_DEBOUNCE_MS = 300
 
 export const SECRET_FIELDS: SecretKeyField[] = [
   'openaiKey',
   'geminiKey',
-  'openrouterKey',
-  'pexelsKey'
+  'openrouterKey'
 ]
 
 export const EMPTY_SECRET_KEYS: SecretKeys = {
   openaiKey: '',
   geminiKey: '',
-  openrouterKey: '',
-  pexelsKey: ''
+  openrouterKey: ''
 }
 
 export const DEFAULT_MODEL_BY_PROVIDER: Record<LlmProvider, string> = DEFAULT_MODEL_IDS

@@ -49,7 +49,7 @@ export function videoResultForModel(v: PexelsVideo): {
 } {
   return {
     pexelsId: v.id,
-    about: slugFromPexelsUrl(v.url),
+    about: v.commonsDescription || slugFromPexelsUrl(v.url),
     shape: shapeOf(v.width, v.height),
     size: `${v.width}x${v.height}`,
     seconds: v.duration || 0,

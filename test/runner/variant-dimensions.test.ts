@@ -13,7 +13,7 @@ import {
 } from '../support/run-job.ts'
 import { ONE_BEAT_SCRIPT } from '../support/scenarios.ts'
 
-describe('runner: the model picks a smaller file of a clip', () => {
+describe('runner: Commons original media dimensions', () => {
   let network: FakeNetwork
 
   beforeEach(() => {
@@ -25,8 +25,8 @@ describe('runner: the model picks a smaller file of a clip', () => {
     network.restore()
   })
 
-  it('records and names the file by the size that was downloaded', async () => {
-    // The clip itself is 3840x2160; the selected file is its 960x540 version.
+  it('records and names the Commons original video dimensions', async () => {
+    // Commons exposes the original video file at its source dimensions.
     const clip = video(101, 'city-street')
     network.pexels.videos('city street', [clip])
     network.llm
@@ -48,8 +48,8 @@ describe('runner: the model picks a smaller file of a clip', () => {
     assert.deepEqual(network.problems, [])
     assert.equal(run.snapshot.status, 'completed')
     const [asset] = run.manifest.beats[0].assets
-    assert.deepEqual([asset.width, asset.height], [960, 540])
-    assert.match(basename(asset.filePath || ''), /960x540/)
+    assert.deepEqual([asset.width, asset.height], [3840, 2160])
+    assert.match(basename(asset.filePath || ''), /3840x2160/)
   })
 
   it('does the same for a resized photo, whose size is in its URL', async () => {

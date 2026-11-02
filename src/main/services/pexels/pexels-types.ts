@@ -23,7 +23,10 @@ export const PexelsPhotoSchema = z
         tiny: z.string().nullable().optional()
       })
       .passthrough(),
-    alt: z.string().nullable().optional()
+    alt: z.string().nullable().optional(),
+    commonsLicense: z.string().optional(),
+    commonsLicenseUrl: z.string().optional(),
+    commonsDescription: z.string().optional()
   })
   .passthrough()
 
@@ -81,7 +84,10 @@ export const PexelsVideoSchema = z
       .nullable()
       .optional(),
     video_files: z.array(PexelsVideoFileSchema),
-    video_pictures: z.array(PexelsVideoPictureSchema).nullable().optional()
+    video_pictures: z.array(PexelsVideoPictureSchema).nullable().optional(),
+    commonsLicense: z.string().optional(),
+    commonsLicenseUrl: z.string().optional(),
+    commonsDescription: z.string().optional()
   })
   .passthrough()
 

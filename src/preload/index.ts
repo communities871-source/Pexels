@@ -16,8 +16,6 @@ const api = {
       ipcRenderer.invoke('settings:updateSettings', input),
     testProvider: (input: Record<string, unknown>): Promise<Record<string, unknown>> =>
       ipcRenderer.invoke('settings:testProvider', input),
-    testPexelsKey: (key: string): Promise<Record<string, unknown>> =>
-      ipcRenderer.invoke('settings:testPexelsKey', key),
     chooseDownloadFolder: (): Promise<string | null> =>
       ipcRenderer.invoke('settings:chooseDownloadFolder'),
     openAppDataFolder: (): Promise<void> => ipcRenderer.invoke('settings:openAppDataFolder')

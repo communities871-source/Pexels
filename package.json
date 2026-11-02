@@ -1,7 +1,7 @@
 {
   "name": "stockfinder-ai",
   "version": "1.4.0",
-  "description": "An Electron desktop app for finding and downloading Pexels stock assets with AI.",
+  "description": "An Electron desktop app for finding and downloading Wikimedia Commons media with AI.",
   "type": "module",
   "main": "./out/main/index.js",
   "author": "eact6",
@@ -9,7 +9,7 @@
   "homepage": "https://stockfinderai.birol.tech",
   "repository": {
     "type": "git",
-    "url": "https://github.com/birol-dev/Pexels.git"
+    "url": "https://github.com/communities871-source/Pexels.git"
   },
   "scripts": {
     "format": "prettier --write .",

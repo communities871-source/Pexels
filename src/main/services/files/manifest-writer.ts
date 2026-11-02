@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import type { PexelsManifestAttribution } from '../pexels/pexels-attribution.ts'
+import type { CommonsManifestAttribution } from '../pexels/pexels-attribution.ts'
 
 export interface TokenUsage {
   inputTokens: number
@@ -72,7 +72,7 @@ export interface ManifestData {
   summary?: string
   /** LLM tokens spent on this project so far, summed across runs and resumes. */
   usage?: TokenUsage
-  attribution?: PexelsManifestAttribution
+  attribution?: CommonsManifestAttribution
   pexelsQuotaSnapshot?: {
     limit: number
     remaining: number

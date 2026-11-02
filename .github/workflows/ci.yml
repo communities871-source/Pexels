@@ -2,9 +2,10 @@ name: Build and Check
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, wikimedia-commons]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   check:

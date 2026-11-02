@@ -1,107 +1,88 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it } from 'node:test'
-import { installFakeNetwork, type FakeNetwork } from '../support/fake-network.ts'
-import {
-  resetNetworkState,
-  runJob,
-  searchVideos,
-  submitBeats,
-  withDeadline
-} from '../support/run-job.ts'
-import { ONE_BEAT_SCRIPT } from '../support/scenarios.ts'
+import { PexelsClient } from '../../src/main/services/pexels/pexels-client.ts'
+import { PexelsSearchCache } from '../../src/main/services/pexels/pexels-search-cache.ts'
 
-describe('runner: the Pexels quota is exhausted', () => {
-  let network: FakeNetwork
+const originalFetch = globalThis.fetch
 
-  beforeEach(() => {
-    resetNetworkState()
-    network = installFakeNetwork()
-  })
-
+describe('runner media search uses Wikimedia Commons without a media API key', () => {
+  beforeEach(() => PexelsSearchCache.clear())
   afterEach(() => {
-    network.restore()
+    globalThis.fetch = originalFetch
+    PexelsSearchCache.clear()
   })
 
-  it('pauses the job, says when the quota resets, and stops calling Pexels', async () => {
-    const fiveDays = 5 * 24 * 60 * 60
-    network.pexels.quota = {
-      limit: 20000,
-      remaining: 0,
-      resetAt: Math.floor(Date.now() / 1000) + fiveDays
-    }
-    network.pexels.failNextSearch(429)
-    network.llm
-      .tools([submitBeats([ONE_BEAT_SCRIPT])])
-      .tools([searchVideos('beat_1', 'city street')])
+  it('searches Commons and preserves creator and license metadata', async () => {
+    const requested: string[] = []
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      requested.push(String(input))
+      return new Response(JSON.stringify({
+        query: {
+          pages: [{
+            pageid: 123,
+            title: 'File:Example.jpg',
+            imageinfo: [{
+              url: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Example.jpg',
+              thumburl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Example.jpg/640px-Example.jpg',
+              width: 1920,
+              height: 1080,
+              mime: 'image/jpeg',
+              mediatype: 'BITMAP',
+              extmetadata: {
+                Artist: { value: 'Example creator' },
+                LicenseShortName: { value: 'CC BY-SA 4.0' },
+                LicenseUrl: { value: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+                ImageDescription: { value: 'An example image' }
+              }
+            }]
+          }]
+        }
+      }), { status: 200, headers: { 'content-type': 'application/json' } })
+    }) as typeof globalThis.fetch
 
-    // A search that backed off or waited on the reset would run into the deadline.
-    const run = await runJob({ script: ONE_BEAT_SCRIPT }, {}, { deadlineMs: 2000 })
+    const result = await PexelsClient.searchPhotos({ query: 'example' })
+    assert.equal(result.photos.length, 1)
+    assert.equal(result.photos[0].photographer, 'Example creator')
+    assert.equal(result.photos[0].commonsLicense, 'CC BY-SA 4.0')
+    assert.equal(result.photos[0].url, 'https://commons.wikimedia.org/wiki/File:Example.jpg')
+    assert.match(requested[0], /commons\.wikimedia\.org\/w\/api\.php/)
+    assert.match(requested[0], /filetype%3Abitmap|filetype:bitmap/)
+    assert.match(requested[0], /iiextmetadatafilter/)
+    assert.equal(PexelsClient.isQuotaExhausted(), false)
+    PexelsSearchCache.clear()
+    const portraitOnly = await PexelsClient.searchPhotos({ query: 'example', orientation: 'portrait' })
+    assert.equal(portraitOnly.photos.length, 0)
+  })
+  it('searches Commons video files and parses duration metadata', async () => {
+    globalThis.fetch = (async () => new Response(JSON.stringify({
+      query: {
+        pages: [{
+          pageid: 456,
+          title: 'File:Example.ogv',
+          imageinfo: [{
+            url: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Example.ogv',
+            thumburl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Example.ogv/640px-Example.ogv.jpg',
+            width: 1280,
+            height: 720,
+            mime: 'video/ogg',
+            mediatype: 'VIDEO',
+            extmetadata: {
+              Artist: { value: 'Video creator' },
+              LicenseShortName: { value: 'CC BY 4.0' },
+              LicenseUrl: { value: 'https://creativecommons.org/licenses/by/4.0/' },
+              ImageDescription: { value: 'A sample clip' },
+              Length: { value: '1 min 2 s' }
+            }
+          }]
+        }]
+      }
+    }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof globalThis.fetch
 
-    assert.equal(run.snapshot.status, 'paused')
-    assert.equal(network.pexelsRequests().length, 1, 'no Pexels request after the 429')
-    const logged = run.snapshot.logs.map((entry) => entry.message).join('\n')
-    assert.match(logged, /Pexels API quota is exhausted/)
-    assert.match(logged, /It resets /)
+    const result = await PexelsClient.searchVideos({ query: 'example' })
+    assert.equal(result.videos.length, 1)
+    assert.equal(result.videos[0].duration, 62)
+    assert.equal(result.videos[0].commonsLicense, 'CC BY 4.0')
+    assert.equal(result.videos[0].video_files[0].file_type, 'video/ogg')
   })
 
-  it('pauses before the next search once an answer spent the last request, and again on resume', async () => {
-    network.pexels.quota = {
-      limit: 20000,
-      remaining: 0,
-      resetAt: Math.floor(Date.now() / 1000) + 5 * 24 * 60 * 60
-    }
-    network.llm
-      .tools([submitBeats([ONE_BEAT_SCRIPT])])
-      // This search is answered, with headers that say nothing is left.
-      .tools([searchVideos('beat_1', 'city street')])
-      .tools([searchVideos('beat_1', 'busy road')])
-
-    const run = await runJob({ script: ONE_BEAT_SCRIPT }, {}, { deadlineMs: 2000 })
-
-    assert.deepEqual(network.problems, [])
-    assert.equal(run.snapshot.status, 'paused')
-    assert.equal(run.summary.status, 'paused')
-    assert.equal(network.pexelsRequests().length, 1, 'the second search was never sent')
-    const refused = run.snapshot.logs.findLast((entry) => entry.type === 'tool_result')
-    assert.deepEqual(Object.keys(refused?.data as object), ['error', 'retryable'])
-    assert.match((refused?.data as { error: string }).error, /^pexels_rate_limited: /)
-    assert.equal((refused?.data as { retryable: boolean }).retryable, false)
-
-    // Nothing has reset, so a resume must stop at the same place without calling Pexels.
-    network.llm.tools([searchVideos('beat_1', 'night traffic')])
-    await withDeadline(run.runner, run.runner.resume(), 2000)
-
-    assert.deepEqual(network.problems, [])
-    assert.equal(run.runner.getSnapshot().status, 'paused')
-    assert.equal(network.pexelsRequests().length, 1)
-  })
-})
-
-describe('runner: Pexels refuses the key during a search', () => {
-  let network: FakeNetwork
-
-  beforeEach(() => {
-    resetNetworkState()
-    network = installFakeNetwork()
-  })
-
-  afterEach(() => {
-    network.restore()
-  })
-
-  it('fails the job with the Pexels error instead of handing it back to the model', async () => {
-    network.pexels.failNextSearch(401)
-    network.llm
-      .tools([submitBeats([ONE_BEAT_SCRIPT])])
-      .tools([searchVideos('beat_1', 'city street')])
-
-    const run = await runJob({ script: ONE_BEAT_SCRIPT })
-
-    assert.deepEqual(network.problems, [])
-    assert.equal(run.snapshot.status, 'failed')
-    assert.equal(run.snapshot.statusReason, 'error')
-    assert.equal(network.llmRequests().length, 2, 'the model was not asked to try again')
-    const logged = run.snapshot.logs.map((entry) => entry.message).join('\n')
-    assert.match(logged, /Agent stopped because of an error: Pexels.*HTTP 401/)
-  })
 })

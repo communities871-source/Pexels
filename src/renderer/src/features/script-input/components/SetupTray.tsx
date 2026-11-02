@@ -39,13 +39,6 @@ export function SetupTray(): React.JSX.Element | null {
       action: toSettings
     },
     {
-      id: 'pexels',
-      title: 'Pexels key',
-      detail: 'Free, and it is where the footage comes from.',
-      done: !!settings.pexelsKey,
-      action: toSettings
-    },
-    {
       id: 'folder',
       title: 'Download folder',
       detail: 'Where each pack is saved.',

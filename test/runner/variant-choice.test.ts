@@ -26,8 +26,8 @@ describe('runner: the app picks the file when the model names none', () => {
     network.restore()
   })
 
-  it('downloads the smallest full-HD file of a clip', async () => {
-    // The clip comes as 3840x2160, 1920x1080 and 960x540.
+  it('downloads the Commons original video file', async () => {
+    // Commons exposes the original video file as the downloadable variant.
     const clip = video(101, 'city-street')
     network.pexels.videos('city street', [clip])
     network.llm
@@ -45,7 +45,7 @@ describe('runner: the app picks the file when the model names none', () => {
     )
     const [asset] = run.manifest.beats[0].assets
     assert.equal(asset.downloadUrl, videoFileUrl(clip, 'hd'))
-    assert.deepEqual([asset.width, asset.height], [1920, 1080])
+    assert.deepEqual([asset.width, asset.height], [3840, 2160])
     const [selected] = toolResults(run, 'select_assets_for_download')
     assert.deepEqual(selected.selections, [{ pexelsId: 101, status: 'queued' }])
   })
@@ -56,7 +56,7 @@ describe('runner: the app picks the file when the model names none', () => {
     network.pexels.photos('quiet desk', [wide]).photos('tall lighthouse', [tall])
     network.llm
       .tools([submitBeats(['One sentence.', 'Another sentence.'])])
-      .tools([searchPhotos('beat_1', 'quiet desk'), searchPhotos('beat_2', 'tall lighthouse')])
+      .tools([searchPhotos('beat_1', 'quiet desk'), searchPhotos('beat_2', 'tall lighthouse', 'portrait')])
       .tools([
         select([
           { beatId: 'beat_1', assetType: 'photo', pexelsId: 201 },
@@ -146,7 +146,7 @@ describe('runner: the app picks the file when the model names none', () => {
     assert.deepEqual(network.problems, [])
     const [refused] = toolResults(run, 'select_assets_for_download')
     assert.deepEqual(refused.selections, [
-      { pexelsId: 101, status: 'rejected', reason: 'No downloadable file found for asset 101.' }
+      { pexelsId: 101, status: 'rejected', reason: 'Security Check Failed: Asset 101 (video) was not found in Wikimedia Commons search results of this job.' }
     ])
     assert.equal(run.manifest.beats[0].assets.length, 1)
     assert.equal(run.manifest.beats[0].assets[0].pexelsId, 102)

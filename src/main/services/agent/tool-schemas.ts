@@ -64,7 +64,7 @@ export type DownloadSelectedAssetsArgs = z.infer<typeof DownloadSelectedAssetsAr
 export const AGENT_TOOLS: NormalizedToolDefinition[] = [
   {
     name: 'search_pexels_photos',
-    description: 'Search for photos on Pexels matching a query for a script beat.',
+    description: 'Search Wikimedia Commons for photos matching a query for a script beat.',
     parameters: {
       type: 'object',
       properties: {
@@ -89,7 +89,7 @@ export const AGENT_TOOLS: NormalizedToolDefinition[] = [
   },
   {
     name: 'search_pexels_videos',
-    description: 'Search for videos on Pexels matching a query for a script beat.',
+    description: 'Search Wikimedia Commons for videos matching a query for a script beat.',
     parameters: {
       type: 'object',
       properties: {

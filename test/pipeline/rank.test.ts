@@ -389,7 +389,7 @@ const USER_CONTENT_BEFORE_THUMBNAILS = [
 
 /** A video candidate's thumbnail as the ranking attaches it. */
 const tinyOf = (id: number): string =>
-  `https://images.pexels.com/videos/${id}/pictures/preview-0.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280`
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/video-${id}.webm/640px-video-${id}.webm.jpg`
 
 /** The candidate keys a user message lists as attached thumbnails, in the order it states. */
 function thumbnailOrder(userContent: string): string[] {
@@ -602,7 +602,7 @@ describe('rankBeats with thumbnails', () => {
       assert.deepEqual(
         fake.requests[0].images?.map((image) => image.url),
         [
-          'https://images.pexels.com/photos/8/pexels-photo-8.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280',
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/photo-8.jpg/1880px-photo-8.jpg',
           tinyOf(7)
         ]
       )

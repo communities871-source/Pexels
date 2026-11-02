@@ -36,7 +36,7 @@ export interface EvalNetworkOptions {
   noDownload?: boolean
 }
 
-const MEDIA_HOSTS = new Set(['images.pexels.com', 'videos.pexels.com'])
+const MEDIA_HOSTS = new Set(['upload.wikimedia.org', 'videos.pexels.com'])
 const PLACEHOLDER_MEDIA = new TextEncoder().encode(
   'Placeholder written by the evaluation runner (--no-download). This is not a media file.\n'
 )
@@ -81,7 +81,7 @@ export function installEvalNetwork(options: EvalNetworkOptions): EvalNetwork {
         return new Response(PLACEHOLDER_MEDIA, {
           status: 200,
           headers: {
-            'content-type': url.hostname === 'images.pexels.com' ? 'image/jpeg' : 'video/mp4',
+            'content-type': /\.(?:jpe?g|png|gif|webp|avif)$/i.test(url.pathname) ? 'image/jpeg' : 'video/mp4',
             'content-length': String(PLACEHOLDER_MEDIA.length)
           }
         })

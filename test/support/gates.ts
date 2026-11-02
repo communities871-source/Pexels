@@ -38,14 +38,17 @@ export function holdLlmRequest(nth: number): Gate {
 /** Holds the first video search for this query. */
 export function holdVideoSearch(query: string): Gate {
   return gateFetch(
-    (url) => url.pathname === '/v1/videos/search' && url.searchParams.get('query') === query
+    (url) =>
+      url.hostname === 'commons.wikimedia.org' &&
+      url.pathname === '/w/api.php' &&
+      url.searchParams.get('gsrsearch') === `${query} filetype:video`
   )
 }
 
 /** Holds the first media file download. */
 export function holdMediaDownload(): Gate {
   return gateFetch(
-    (url) => url.hostname === 'videos.pexels.com' || url.hostname === 'images.pexels.com'
+    (url) => url.hostname === 'upload.wikimedia.org'
   )
 }
 
