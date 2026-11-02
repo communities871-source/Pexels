@@ -73,7 +73,9 @@ export function video(
 }
 
 /** The single downloadable original file of a Commons video fixture. */
-export function videoFileUrl(item: PexelsVideo, _quality: 'uhd' | 'hd' | 'sd'): string {
+export function videoFileUrl(item: PexelsVideo, quality: 'uhd' | 'hd' | 'sd'): string {
+  // Wikimedia Commons fixtures expose one original file regardless of requested quality.
+  void quality
   const file = item.video_files[0]
   if (!file) throw new Error(`Fixture video ${item.id} has no downloadable file`)
   return file.link
