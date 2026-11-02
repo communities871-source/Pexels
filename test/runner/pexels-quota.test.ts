@@ -43,6 +43,7 @@ describe('runner media search uses Wikimedia Commons without a media API key', (
     assert.equal(result.photos.length, 1)
     assert.equal(result.photos[0].photographer, 'Example creator')
     assert.equal(result.photos[0].commonsLicense, 'CC BY-SA 4.0')
+    assert.equal(result.photos[0].url, 'https://commons.wikimedia.org/wiki/File:Example.jpg')
     assert.match(requested[0], /commons\.wikimedia\.org\/w\/api\.php/)
     assert.match(requested[0], /filetype%3Abitmap|filetype:bitmap/)
     assert.equal(PexelsClient.isQuotaExhausted(), false)
