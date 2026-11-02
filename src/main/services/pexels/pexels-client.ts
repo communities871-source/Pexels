@@ -56,7 +56,7 @@ export class PexelsClient {
       maxRetries: 3,
       init: {
         signal,
-        headers: { 'Api-User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' }
+        headers: { 'User-Agent': 'StockFinderAI/1.0 (Wikimedia Commons media search)' }
       },
       isAborted: () => Boolean(signal?.aborted)
     })
@@ -143,9 +143,17 @@ export class PexelsClient {
 
   private static parseDuration(value?: string): number {
     if (!value) return 0
-    const parts = value.trim().split(':').map(Number)
-    if (!parts.length || parts.some((part) => !Number.isFinite(part))) return 0
-    return parts.reduce((total, part) => total * 60 + part, 0)
+    const clock = value.trim().match(/^(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/)
+    if (clock) return Number(clock[1] || 0) * 3600 + Number(clock[2]) * 60 + Number(clock[3])
+    const parts = value.match(/(\d+(?:\.\d+)?)\s*(h|hr|hour|m|min|minute|s|sec|second)s?/gi)
+    if (!parts) return 0
+    return parts.reduce((total, part) => {
+      const match = part.match(/(\d+(?:\.\d+)?)\s*(h|hr|hour|m|min|minute|s|sec|second)/i)
+      if (!match) return total
+      const unit = match[2].toLowerCase()
+      const factor = unit.startsWith('h') ? 3600 : unit.startsWith('m') ? 60 : 1
+      return total + Number(match[1]) * factor
+    }, 0)
   }
 
   private static async getCommonsPage(id: number): Promise<CommonsPage> {
