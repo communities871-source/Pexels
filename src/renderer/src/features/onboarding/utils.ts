@@ -28,7 +28,6 @@ export interface OnboardingDraft {
   modelId: string
   downloadFolder: string
   keys: ProviderKeys
-  pexelsKey: string
 }
 
 /** Only non-empty keys are written, so skipped steps never overwrite stored keys. */
@@ -42,6 +41,5 @@ export function buildSettingsUpdates(draft: OnboardingDraft): Partial<PublicSett
   if (draft.keys.openai) updates.openaiKey = draft.keys.openai
   if (draft.keys.gemini) updates.geminiKey = draft.keys.gemini
   if (draft.keys.openrouter) updates.openrouterKey = draft.keys.openrouter
-  if (draft.pexelsKey) updates.pexelsKey = draft.pexelsKey
   return updates
 }
