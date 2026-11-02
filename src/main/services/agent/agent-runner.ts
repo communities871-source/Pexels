@@ -157,6 +157,7 @@ export interface AssetRecord {
   duration?: number
   photographer: string
   photographerUrl?: string
+  sourceUrl?: string
   license?: string
   licenseUrl?: string
   description?: string
@@ -1133,6 +1134,7 @@ export class AgentRunner extends EventEmitter {
       url: string
       photographer: string
       photographerUrl?: string
+      sourceUrl?: string
       license?: string
       licenseUrl?: string
       description?: string
@@ -1153,6 +1155,7 @@ export class AgentRunner extends EventEmitter {
             url: a.url,
             photographer: a.photographer,
             photographerUrl: a.photographerUrl,
+            sourceUrl: a.sourceUrl,
             license: a.license,
             licenseUrl: a.licenseUrl,
             description: a.description
@@ -1826,6 +1829,7 @@ export class AgentRunner extends EventEmitter {
       duration: candidate.duration,
       photographer: candidate.photographer,
       photographerUrl: candidate.photographerUrl,
+      sourceUrl: candidate.sourceUrl,
       license: candidate.license,
       licenseUrl: candidate.licenseUrl,
       description: candidate.description,
