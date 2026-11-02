@@ -110,7 +110,7 @@ export function beatsRanked(request: LlmRequestBody): string[] {
 
 /** The queries of the Pexels searches sent so far, in the order they arrived. */
 export function pexelsQueries(network: FakeNetwork): string[] {
-  return network.pexelsRequests().map((request) => request.url.searchParams.get('query') ?? '')
+  return network.pexelsRequests().map((request) => (request.url.searchParams.get('gsrsearch') ?? '').replace(/\s+filetype:(?:bitmap|video)$/i, '').trim())
 }
 
 export interface SavedPipelineFiles {
