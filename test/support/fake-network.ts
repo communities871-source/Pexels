@@ -225,7 +225,7 @@ export function installFakeNetwork(): FakeNetwork {
       pageid: item.id,
       title,
       imageinfo: [{
-        url: fileUrl,
+        url: type === 'video' && !(item as PexelsVideo).video_files.length ? '' : fileUrl,
         thumburl: type === 'photo'
           ? `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/1880px-${type}-${item.id}.${ext}`
           : `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/${type}-${item.id}.${ext}/640px-${type}-${item.id}.${ext}.jpg`,
