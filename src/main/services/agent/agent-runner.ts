@@ -1665,7 +1665,7 @@ export class AgentRunner extends EventEmitter {
     }))
   }
 
-  /** A Pexels search for the pipeline. One that runs the quota out pauses the job, as in the loop. */
+  /** A Commons search for the pipeline. A rate-limited request pauses the job, as in the loop. */
   private async pipelineSearch<T>(search: () => Promise<T>): Promise<T> {
     try {
       return await search()
@@ -1761,7 +1761,7 @@ export class AgentRunner extends EventEmitter {
 
   /**
    * Searches Pexels for the job. A search with no shape asked for gets the shape of the platform.
-   * The error of a call that ran out of quota goes to `pauseIfCommonsRateLimited`.
+   * A rate-limited Commons search is paused by `pauseIfCommonsRateLimited`.
    */
   private searchPexels(
     type: 'photo',
@@ -2318,7 +2318,7 @@ export class AgentRunner extends EventEmitter {
       name: tc.name,
       content: JSON.stringify(result)
     })
-    // The model cannot fix a key Pexels refuses, so the run ends here with the real cause.
+    // The model cannot fix a provider authentication error, so the run ends here with the real cause.
     if (unrecoverable) throw unrecoverable
   }
 
@@ -2337,7 +2337,6 @@ export class AgentRunner extends EventEmitter {
     return (
       error instanceof ApiError &&
       error.statusCode === 429 &&
-      
       this.status === 'running'
     )
   }
